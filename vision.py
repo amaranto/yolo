@@ -1,25 +1,14 @@
-import os
-from fastapi import FastAPI, APIRouter
-from uvicorn import Server, Config
-from starlette.middleware.cors import CORSMiddleware
+import asyncio
+from lib.stream.streamer import receive, rtsp
+from config import RTSP, logging
 
-from routes.predict import router as prediction_router
+logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["Image Upload and analysis"], prefix="/yolo")
+while True:
+    loop = asyncio.get_event_loop()
+    tasks = [
+        loop.create_task(receive()),
+    ]
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=False,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(prediction_router)
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    server = Server(Config(app, host="0.0.0.0", port=port, lifespan="on"))
-    server.run()
+    loop.run_until_complete(asyncio.wait(tasks))
+    loop.close()

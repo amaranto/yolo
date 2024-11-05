@@ -1,15 +1,13 @@
-from fastapi import APIRouter, UploadFile, Response, status, HTTPException
+from fastapi import APIRouter, UploadFile, status
 from lib.models.responses import ImageObjTrackingResponse, ListImageObjectTrackingResponse
-from PIL import Image
-from io import BytesIO
 from lib.tools.yolo import from_yolo_to_p1p2
-from yolo.detector import model
+from lib.yolo.detector import model
 import numpy as np
 import cv2
 
 router = APIRouter(tags=["Image Upload and analysis"], prefix="/yolo")
 
-@router.post("/",
+@router.post("/predict",
     status_code=status.HTTP_201_CREATED,
     responses={
         201: {"description": "Successfully Analyzed Image."}
