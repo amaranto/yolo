@@ -6,10 +6,10 @@ router = APIRouter(tags=["Stream output"], prefix="/stream")
 @router.get("/prediction")
 async def stream_output():
     def iterfile():   
-        with open("output/prediction.jpg", mode="rb") as file_like:   
+        with open("output/output.avi", mode="rb") as file_like:   
             yield from file_like
 
-    return StreamingResponse(iterfile(), media_type="image/jpeg")
+    return StreamingResponse(iterfile(), media_type="video/avi")
 
 @router.get("/original")
 async def stream_output():
@@ -28,16 +28,7 @@ async def stream_output():
 
         </head>
         <body>
-            <script>
-
-                var img = document.getElementById("pred");
-
-                setInterval(function() {
-                    img.src = "http://localhost:8081/stream/prediction?" + escape(Math.random());
-                    
-                }, 20);
-            </script>        
-            <img id="pred"  alt="stream"/>
+            <video id="video" src="http://localhost:8081/stream/prediction" autoplay="autoplay" />
         </body>
     </html>
     '''
