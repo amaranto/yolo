@@ -59,7 +59,7 @@ ulti-part upload image and runs yolov8 on it to detect objects
             conf = conf.numpy().round(2)
             
             p1,p2 = from_yolo_to_p1p2(x,y,w,h, (boxes.orig_shape[0], boxes.orig_shape[1]) )
-            img = cv2.putText(img, f"{id}: {clsName}", (p1[0], p1[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (36,255,12))
+            img = cv2.putText(img, f"{id}: {clsName}", (p1[0], p1[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.3, text_color=(255, 255, 255),text_color_bg=(0,0,0))
             img = cv2.rectangle(img, p2, p1, color=(255,0,0))
             #cv2.imwrite(f"output/predict.jpeg", img)
 
