@@ -1,5 +1,5 @@
 import asyncio
-from lib.stream.streamer import receive, rtsp
+from lib.stream.streamer import inferencer
 from config import RTSP, logging
 
 logger = logging.getLogger(__name__)
@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 while True:
     loop = asyncio.get_event_loop()
     tasks = [
-        loop.create_task(receive()),
+        loop.create_task(inferencer()),
     ]
 
     loop.run_until_complete(asyncio.wait(tasks))

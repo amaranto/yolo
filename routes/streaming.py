@@ -28,7 +28,7 @@ async def stream_output():
 
         </head>
         <body>
-            <video id="video" src="http://localhost:8081/stream/prediction" autoplay="autoplay" />
+            <video preload="metadata" id="video" src="http://localhost:8081/stream/prediction" autoplay="autoplay" />
         </body>
     </html>
     '''

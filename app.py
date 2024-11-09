@@ -1,17 +1,17 @@
 import os
 from fastapi import FastAPI, APIRouter
 from uvicorn import Server, Config
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
 from routes.yolo import router as prediction_router
 from routes.streaming import router as streaming_router
-
+from config import CORS_ORIGIN
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=False,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGIN,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
