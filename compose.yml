@@ -1,0 +1,18 @@
+services:
+  web:
+    image: model-base:latest
+    ports:
+      - "8080:8080"
+  streamer:
+    image: model-base:latest
+    environment:
+      RTSP_USER: proyecto
+      RTSP_PWD: proyecto2024
+      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=9&subtype=1"
+  vision:
+    resources:
+    reservations:
+      devices:
+        - driver: nvidia
+          count: 1
+          capabilities: [gpu]
