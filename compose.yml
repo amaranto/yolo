@@ -1,18 +1,50 @@
+version: "3"
 services:
   web:
     image: model-base:latest
+    build: .
     ports:
       - "8080:8080"
+    command: python3 app.py 
+    volumes:
+      - ./output:/app/output/
+
   streamer:
+    depends_on:
+      inferencer:
+        condition: service_healthy
     image: model-base:latest
     environment:
       RTSP_USER: proyecto
       RTSP_PWD: proyecto2024
       RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=9&subtype=1"
-  vision:
-    resources:
-    reservations:
-      devices:
-        - driver: nvidia
-          count: 1
-          capabilities: [gpu]
+      INFERENCER_SERVER_ADRRESS: "inferencer"
+      INFERENCER_PORT: 2706
+    command: python3 streamer.py 
+    volumes:
+      - ./output:/app/output/
+
+  inferencer:
+    image: model-base:latest
+    ports:
+      - "2706:2706"
+    command: python3 inferencer.py
+    volumes:
+      - ./output:/app/output/
+    deploy:          
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+    healthcheck:
+      test: ["CMD-SHELL", "lsof -iTCP:2706 -sTCP:LISTEN -P"]
+      interval: 10s
+      retries: 3
+      start_period: 1s
+      timeout: 1s
+
+volumes:
+  output-volume:

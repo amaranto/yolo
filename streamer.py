@@ -1,13 +1,13 @@
 import asyncio
-from lib.stream.streamer import receive, rtsp
-from config import RTSP, logging
+from lib.stream.streamer import streamer
+from config import RTSP, INFERENCER_SERVER_ADRRESS, INFERENCER_PORT, logging
 
 logger = logging.getLogger(__name__)
 
 while True:
     loop = asyncio.get_event_loop()
     tasks = [
-        loop.create_task(rtsp(RTSP)),
+        loop.create_task(streamer(RTSP, inferencer_address=INFERENCER_SERVER_ADRRESS, port=INFERENCER_PORT)),
     ]
     
     loop.run_until_complete(asyncio.wait(tasks))
