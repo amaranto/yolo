@@ -1,7 +1,6 @@
 
 # Byte-compiled / optimized / DLL files
-*output/
-*yolo/yolo*.pt
+output/*
 __pycache__/
 *.py[cod]
 *$py.class
