@@ -8,6 +8,7 @@ services:
     command: python3 app.py 
     volumes:
       - ./output:/app/output/
+    restart: always
 
   streamer_ch9:
     depends_on:
@@ -24,6 +25,7 @@ services:
     command: python3 streamer.py 
     volumes:
       - ./output:/app/output/
+    restart: always
 
   streamer_ch25:
     depends_on:
@@ -40,6 +42,7 @@ services:
     command: python3 streamer.py 
     volumes:
       - ./output:/app/output/
+    restart: always
 
   counter:
     image: model-base:latest
@@ -64,6 +67,7 @@ services:
       retries: 3
       start_period: 1s
       timeout: 1s
+    restart: always
 
   charge:
     image: model-base:latest
@@ -89,6 +93,7 @@ services:
       retries: 3
       start_period: 1s
       timeout: 1s
-
+    restart: always
+    
 volumes:
   output-volume:
