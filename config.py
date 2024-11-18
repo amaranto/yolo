@@ -8,6 +8,7 @@ RTSP_PWD=os.getenv("RTSP_PWD", None)
 RTSP=f"rtsp://{RTSP_USER}:{RTSP_PWD}@" if RTSP_USER and RTSP_PWD else "rtsp://"
 RTSP=f"{RTSP}{RTSP_ENDPOINT}"
 #RTSP="rtsp://proyecto:proyecto2024@11.37.69.100/cam/realmonitor?channel=9&subtype=1"
+STREAMER_OUTPUT_IMG=os.getenv("STREAMER_OUTPUT_IMG", "output/preview.jpg")
 INFERENCER_SERVER_ADRRESS=os.getenv("INFERENCER_SERVER_ADRRESS","127.0.0.1")
 INFERENCER_BIND_ADDRESS=os.getenv("INFERENCER_BIND_ADDRESS","0.0.0.0")
 INFERENCER_PORT=int( os.getenv("INFERENCER_PORT","2706") )
