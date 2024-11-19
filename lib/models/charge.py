@@ -63,8 +63,8 @@ class VisionTracking():
                     self.status["classes"][class_name] = { "total": 1 }  
                 else: 
                     self.status["classes"][class_name]["total"] += 1
-                self.status["classes"][class_name]["last_frame_time"] = frame_time
-
+                    
+            self.status["classes"][class_name]["last_frame_time"] = frame_time
             self.status["ids"][track_id] = class_name
         return self.status 
     
@@ -212,7 +212,7 @@ class VisionTracking():
                         output_file = f"{self.output_folder}/charge-{timestmp}.avi"
                         self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
                         logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
-                
+                    logger.debug(f"Video output enabled.")
                     self.__video_output__.write(img)
                 else:
                     self.__video_output__ = None

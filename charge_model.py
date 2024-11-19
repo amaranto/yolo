@@ -1,9 +1,7 @@
 import asyncio, torch
 from datetime import datetime
-#from lib.models.vision import VisionTracking
 from lib.models.charge import VisionTracking
-#from lib.tools.draw import draw_tracking_charge_model
-from config import RTSP, INFERENCER_BIND_ADDRESS, INFERENCER_PORT, INFERENCER_OUTPUT_FILE, INFERENCER_FPS,logging
+from config import RTSP, logging
 
 logger = logging.getLogger(__name__)
 
