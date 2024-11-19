@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse, HTMLResponse
 
@@ -5,8 +7,11 @@ router = APIRouter(tags=["Stream output"], prefix="/stream")
 
 @router.get("/prediction")
 async def stream_output():
+
+    paths = sorted(Path("output/").iterdir(), key=os.path.getmtime)
+
     def iterfile():   
-        with open("output/output.avi", mode="rb") as file_like:   
+        with open(paths[0], mode="rb") as file_like:   
             yield from file_like
 
     return StreamingResponse(iterfile(), media_type="video/avi")
