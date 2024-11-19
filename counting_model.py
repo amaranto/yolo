@@ -10,10 +10,6 @@ if torch.cuda.is_available():
 else:
     logger.warning("CUDA NOT AVAILABLE !")
 
-# def break_loop_after_1h( status: dict ):
-#     delta = status["last_frame"] - status["start_time"]
-#     return delta.seconds < 3600 # Create a new stream after 1 hour
-
 loop = asyncio.get_event_loop()
 
 while True:

@@ -10,48 +10,13 @@ services:
       - ./output:/app/output/
     restart: always
 
-  streamer_ch9:
-    depends_on:
-      counter:
-        condition: service_healthy
-    image: model-base:latest
-    environment:
-      RTSP_USER: proyecto
-      RTSP_PWD: proyecto2024
-      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=9&subtype=1"
-      INFERENCER_SERVER_ADRRESS: "counter"
-      INFERENCER_PORT: 2706
-      STREAMER_OUTPUT_IMG: "output/ch9.jpg"
-    command: python3 streamer.py 
-    volumes:
-      - ./output:/app/output/
-    restart: always
-
-  streamer_ch25:
-    depends_on:
-      charge:
-        condition: service_healthy
-    image: model-base:latest
-    environment:
-      RTSP_USER: proyecto
-      RTSP_PWD: proyecto2024
-      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=25&subtype=1"
-      INFERENCER_SERVER_ADRRESS: "charge"
-      INFERENCER_PORT: 2006
-      STREAMER_OUTPUT_IMG: "output/ch25.jpg"
-    command: python3 streamer.py 
-    volumes:
-      - ./output:/app/output/
-    restart: always
-
   counter:
     image: model-base:latest
-    ports:
-      - "2706:2706"
     command: python3 counting_model.py
     environment:
-      INFERENCER_PORT: 2706
-      INFERENCER_OUTPUT_FILE: "output/counter.avi"      
+      RTSP_USER: proyecto
+      RTSP_PWD: proyecto2024
+      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=9&subtype=1"    
     volumes:
       - ./output:/app/output/
     deploy:          
@@ -61,22 +26,21 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    healthcheck:
-      test: ["CMD-SHELL", "lsof -iTCP:2706 -sTCP:LISTEN -P"]
-      interval: 10s
-      retries: 3
-      start_period: 1s
-      timeout: 1s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "lsof -iTCP:2706 -sTCP:LISTEN -P"]
+    #   interval: 10s
+    #   retries: 3
+    #   start_period: 1s
+    #   timeout: 1s
     restart: always
 
   charge:
     image: model-base:latest
-    ports:
-      - "2006:2006"
     command: python3 charge_model.py
     environment:
-      INFERENCER_PORT: 2006
-      INFERENCER_OUTPUT_FILE: "output/charge.avi"
+      RTSP_USER: proyecto
+      RTSP_PWD: proyecto2024
+      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=25&subtype=1" 
     volumes:
       - ./output:/app/output/
     deploy:          
@@ -87,12 +51,12 @@ services:
               count: 1
               capabilities: [gpu]
 
-    healthcheck:
-      test: ["CMD-SHELL", "lsof -iTCP:2006 -sTCP:LISTEN -P"]
-      interval: 10s
-      retries: 3
-      start_period: 1s
-      timeout: 1s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "lsof -iTCP:2006 -sTCP:LISTEN -P"]
+    #   interval: 10s
+    #   retries: 3
+    #   start_period: 1s
+    #   timeout: 1s
     restart: always
     
 volumes:

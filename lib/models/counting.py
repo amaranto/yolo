@@ -63,8 +63,7 @@ class VisionTracking():
                     self.status["classes"][class_name] = { "total": 1 }  
                 else: 
                     self.status["classes"][class_name]["total"] += 1
-                self.status["classes"][class_name]["last_frame_time"] = frame_time
-
+            self.status["classes"][class_name]["last_frame_time"] = frame_time
             self.status["ids"][track_id] = class_name
         return self.status 
     
@@ -125,7 +124,8 @@ class VisionTracking():
     def __enable_video_output__( self ):
         
         delta = self.last_frame - self.start_time
-        return delta.seconds < 30 # Create a new stream after 1 hour   
+        logger.debug(delta.seconds)
+        return delta.seconds < 3600 # Create a new stream after 1 hour   
 
     async def predict(self, img, tracker="bytetrack.yaml", conf=0.6, iou=0.3, persist=True):
         
@@ -196,9 +196,10 @@ class VisionTracking():
                         output_file = f"{self.output_folder}/counting-{timestmp}.avi"
                         self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
                         logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
-                
+                    logger.debug(f"Video output enabled.")
                     self.__video_output__.write(img)
                 else:
+                    self.start_time = datetime.now()
                     self.__video_output__ = None
 
             except Exception as e:
