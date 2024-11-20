@@ -1,0 +1,62 @@
+{{- range $k, $v := .Values.modeloCarga }}
+{{- range $c := $v.channels }}
+---   
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cameras.fullname" $ }}-conteo-{{$k}}-ch{{$c}}
+  namespace: {{ $.Values.env }}
+  labels:
+    {{- include "cameras.labels" $ | nindent 4 }}-conteo-{{$k}}-ch{{$c}}
+spec:
+  selector:
+    matchLabels:
+      {{- include "cameras.selectorLabels" $ | nindent 6 }}-conteo-{{$k}}-ch{{$c}}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        {{- include "cameras.selectorLabels" $ | nindent 8 }}-conteo-{{$k}}-ch{{$c}}
+    spec:
+      serviceAccountName: {{ $.Values.serviceAccount.name }}
+      containers:
+        - name: modelo-conteo
+          image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
+          command: ["python3", "charge_model.py"]
+          env:
+            {{- if $v.secrets }}
+            - name: RTSP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $v.secrets }}
+                  key: user
+            - name: RTSP_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $v.secrets }}
+                  key: password
+            {{- end }}
+            - name: RTSP_ENDPOINT
+              value: {{ printf "%v?channel=%v&subtype=%v" $v.rtsp $c $v.subtype }}       
+          volumeMounts:
+            - name: vol-conteo-{{$k}}-ch{{$c}}-data
+              mountPath: /app/output
+              readOnly: true    
+
+        - name: web
+          image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
+          command: ["python3", "app.py"]    
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: vol-conteo-{{$k}}-ch{{$c}}-data
+              mountPath: /app/output
+              readOnly: true   
+      volumes:
+        - name: vol-conteo-{{$k}}-ch{{$c}}-data
+          emptyDir:
+            sizeLimit: 100Gi        
+{{- end }}
+{{- end }}

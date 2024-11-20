@@ -14,6 +14,7 @@ RUN apt-get install -y libavcodec-dev libavformat-dev libswscale-dev libgstreame
 FROM cv-model-base-2404
 COPY requirements.txt .
 RUN pip install --break-system-packages -r requirements.txt 
+
 COPY . .
 EXPOSE 8080
 CMD ["python3", "app.py"]
