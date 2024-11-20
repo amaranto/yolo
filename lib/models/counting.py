@@ -19,7 +19,7 @@ class VisionTracking():
         model: str = "yolo11x.pt",
         preview_img: str = "output/counting-preview.jpg",
         fps: float = 20.0,
-        fourcc: any = cv2.VideoWriter_fourcc('F', 'M', 'P', '4'),
+        fourcc: any = cv2.VideoWriter_fourcc(*'VP90'),
         status_filter_foo:any=None,
         print_bbox:bool=True,
         loop_condition:any = lambda x : True,
@@ -193,10 +193,11 @@ class VisionTracking():
                     if self.__video_output__ is None:
                         xsize, ysize, _ = img.shape
                         timestmp = datetime.now().strftime('%Y-%m-%d_T%H:%M:%S.%f')
-                        output_file = f"{self.output_folder}/counting-{timestmp}.avi"
+                        output_file = f"{self.output_folder}/counting-{timestmp}.webm"
                         self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
                         logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
                     logger.debug(f"Video output enabled.")
+                    #img = cv2.imencode('.jpg', img)
                     self.__video_output__.write(img)
                 else:
                     self.start_time = datetime.now()
