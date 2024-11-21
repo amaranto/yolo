@@ -58,13 +58,13 @@ class VisionTracking():
             track_id = annotation['track_id']
             class_name = 'motorcycle' if annotation['class_name'] == "bicycle" else annotation['class_name']
 
-            if track_id not in self.status["ids"]:
-                if class_name not in self.status["classes"]:
-                    self.status["classes"][class_name] = { "total": 1 }  
-                else: 
-                    self.status["classes"][class_name]["total"] += 1
+            if class_name not in self.status["classes"]:
+                self.status["classes"][class_name] = { "total": 1 }                      
             self.status["classes"][class_name]["last_frame_time"] = frame_time
-            self.status["ids"][track_id] = class_name
+            
+            if track_id not in self.status["ids"]:
+                self.status["ids"][track_id] = class_name
+                self.status["classes"][class_name]["total"] += 1
         return self.status 
     
     def __dict__(self):
@@ -179,6 +179,11 @@ class VisionTracking():
         while cap.isOpened() and self.loop_condition(self.__dict__()):
             try:
                 ret, img= cap.read()
+                
+                if img is None:
+                    logger.error("Can not read frame from stream. Skipping !")
+                    break
+
                 predict_task = asyncio.create_task( self.predict(img=img) )
                 _, results, annotations = await predict_task
                 self.status = self.status_filter_foo(annotations) if self.status_filter_foo else self.__status_filter__(annotations)

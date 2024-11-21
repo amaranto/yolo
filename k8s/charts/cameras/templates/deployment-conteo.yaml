@@ -1,4 +1,4 @@
-{{- range $k, $v := .Values.modeloCarga }}
+{{- range $k, $v := .Values.modeloConteo }}
 {{- range $c := $v.channels }}
 ---   
 apiVersion: apps/v1
@@ -23,7 +23,7 @@ spec:
         - name: modelo-conteo
           image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
-          command: ["python3", "charge_model.py"]
+          command: ["python3", "counting_model.py"]
           env:
             {{- if $v.secrets }}
             - name: RTSP_USER
@@ -42,7 +42,7 @@ spec:
           volumeMounts:
             - name: vol-conteo-{{$k}}-ch{{$c}}-data
               mountPath: /app/output
-              readOnly: true    
+              readOnly: false    
 
         - name: web
           image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
@@ -53,7 +53,7 @@ spec:
           volumeMounts:
             - name: vol-conteo-{{$k}}-ch{{$c}}-data
               mountPath: /app/output
-              readOnly: true   
+              readOnly: false   
       volumes:
         - name: vol-conteo-{{$k}}-ch{{$c}}-data
           emptyDir:
