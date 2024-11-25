@@ -1,10 +1,12 @@
 import cv2
 import numpy as np
-import asyncio 
+import asyncio
 import traceback
-from time import sleep
-from datetime import datetime
 import numpy as np
+from asyncio import AbstractEventLoop
+from time import sleep
+from typing import Callable
+from datetime import datetime
 from ultralytics import YOLO
 from lib.tools.yolo import from_yolo_to_p1p2
 from lib.tools.draw import draw_bboxes
@@ -15,14 +17,16 @@ logger=logging.getLogger(__name__)
 class VisionTracking():
     def __init__(
         self,
-        rtsp: str|None,
+        rtsp: str|None,     
         model: str = "yolo11x.pt",
         preview_img: str = "output/charge-preview.jpg",
         fps: float = 20.0,
+        model_type: str = "carga",
         fourcc: any = cv2.VideoWriter_fourcc(*'VP90'),
-        status_filter_foo:any=None,
+        status_filter_foo:Callable|None=None,
+        loop_condition:Callable = lambda x : True,
+        post_processing_foo:Callable|None = None,
         print_bbox:bool=True,
-        loop_condition:any = lambda x : True,
         output_folder="output",
         classes: list[int] = [
             0, # person
@@ -31,14 +35,17 @@ class VisionTracking():
             3, # motorcycle
             5, # bus
             7, # truck
-        ]        
+        ],
+        event_loop: AbstractEventLoop | None = None   
     ):
-        self.rtsp = rtsp
+        self.rtsp = rtsp  
         self.model:any = YOLO(model)
         self.fps:float = fps
-        self.status_filter_foo:any = status_filter_foo
         self.print_bbox:bool = print_bbox
-        self.loop_condition:any = loop_condition
+        self.model_type = model_type
+        self.status_filter_foo:Callable = status_filter_foo
+        self.loop_condition:Callable = loop_condition
+        self.post_processing_foo:Callable = post_processing_foo
         self.classes:list[int] = classes
         self.preview_img:str = preview_img
         self.start_time: datetime = datetime.now()
@@ -46,14 +53,18 @@ class VisionTracking():
         self.last_frame: datetime = datetime.now()
         self.output_folder = output_folder
         self.status = {
+            "model": self.model_type,
             "classes":{},
             "ids":{}
         }        
         self.fourcc = fourcc
         self.__video_output__ = None
+        self.post_processing_tasks = []
 
     def __status_filter__(self, annotations:dict):
+
         frame_time = datetime.now()
+
         for annotation in annotations:
             track_id = annotation['track_id']
             class_name = 'motorcycle' if annotation['class_name'] == "bicycle" else annotation['class_name']
@@ -69,7 +80,7 @@ class VisionTracking():
         return self.status 
     
     def __dict__(self):
-        return {
+        return {          
             "status": self.status,
             "start_time": self.start_time,
             "previous_frame": self.previous_frame,
@@ -141,8 +152,6 @@ class VisionTracking():
             return last_truck_frame_delta.seconds < 60
         else:
             return False
-        # start_time_delta = current_time - self.start_time
-        # return start_time_delta.seconds < 60    
 
     async def predict(self, img, tracker="bytetrack.yaml", conf=0.6, iou=0.3, persist=True):
         
@@ -198,7 +207,7 @@ class VisionTracking():
                 ret, img= cap.read()
                 
                 if img is None:
-                    logger.error("Can not read frame from stream. Skipping !")
+                    logger.error("Can not read frame from stream. Releasing stream !")
                     break
 
                 predict_task = asyncio.create_task( self.predict(img=img) )
@@ -209,6 +218,13 @@ class VisionTracking():
 
                 self.previous_frame = self.last_frame
 
+                if self.post_processing_foo:
+                    self.post_processing_tasks.append( 
+                        asyncio.create_task(    
+                            self.post_processing_foo(annotations.copy(), self.status.copy())
+                        )
+                    )
+
                 if self.__enable_video_output__(): 
                 
                     if self.__video_output__ is None:
@@ -217,13 +233,17 @@ class VisionTracking():
                         output_file = f"{self.output_folder}/charge-{timestmp}.webm"
                         self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
                         logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
+
                     logger.debug(f"Video output enabled.")
-                    #img = cv2.imencode('.jpg', img)
                     self.__video_output__.write(img)
                 else:
+                    self.start_time = datetime.now()
                     self.__video_output__ = None
 
                 self.last_frame = datetime.now()
+
+                if self.post_processing_foo:
+                    await asyncio.gather(*self.post_processing_tasks)
 
             except Exception as e:
                 logger.error(str(e))

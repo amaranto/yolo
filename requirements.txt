@@ -66,3 +66,4 @@ urllib3==2.2.3
 uvicorn==0.32.0
 wheel==0.42.0
 xkit==0.0.0
+google-cloud-pubsub==2.27.1
