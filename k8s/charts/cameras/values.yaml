@@ -1,5 +1,6 @@
 replicaCount: 1
 env: poc
+gcpProject: raizen-genai-01
 
 images:
   containerImage:
@@ -16,6 +17,9 @@ serviceAccount:
 
 modeloCarga:
   1506:
+    gpu: true
+    accelarator: nvidia-l4
+    pubsub: "vision_app"
     rtsp: "11.37.69.100/cam/realmonitor"
     secrets: rtsp-secret
     subtype: 1
@@ -24,6 +28,9 @@ modeloCarga:
 
 modeloConteo:
   1506:
+    gpu: true
+    accelarator: nvidia-l4
+    pubsub: "vision_app"
     rtsp: "11.37.69.100/cam/realmonitor"
     secrets: rtsp-secret
     subtype: 1

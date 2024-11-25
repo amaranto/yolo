@@ -9,6 +9,11 @@ metadata:
   labels:
     {{- include "cameras.labels" $ | nindent 4 }}-conteo-{{$k}}-ch{{$c}}
 spec:
+  nodeSelector:
+    iam.gke.io/gke-metadata-server-enabled: "true" 
+    {{- if $v.gpu }}
+    cloud.google.com/gke-accelerator: {{ $v.accelarator }}
+    {{-end }}    
   selector:
     matchLabels:
       {{- include "cameras.selectorLabels" $ | nindent 6 }}-conteo-{{$k}}-ch{{$c}}
@@ -39,6 +44,19 @@ spec:
             {{- end }}
             - name: RTSP_ENDPOINT
               value: {{ printf "%v?channel=%v&subtype=%v" $v.rtsp $c $v.subtype }}       
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name   
+            - name: PUBSUB_TOPIC
+              value: {{ $v.rtsp.pubsub }}
+            - name: GCP_PROJECT
+              value: {{ $.Values.gcpProject }}     
+            - name: SPOT
+              value: {{ $k }}
+            - name: CHANNEL
+              value: {{ $c }}     
+                                       
           volumeMounts:
             - name: vol-conteo-{{$k}}-ch{{$c}}-data
               mountPath: /app/output

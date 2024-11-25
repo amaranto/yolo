@@ -14,10 +14,15 @@ spec:
       {{- include "cameras.selectorLabels" $ | nindent 6 }}-carga-{{$k}}-ch{{$c}}
   replicas: 1
   template:
+    nodeSelector:
+      iam.gke.io/gke-metadata-server-enabled: "true"   
+      {{- if $v.gpu }}
+      cloud.google.com/gke-accelerator: {{ $v.accelarator }}
+      {{-end }}
     metadata:
       labels:
         {{- include "cameras.selectorLabels" $ | nindent 8 }}-carga-{{$k}}-ch{{$c}}
-    spec:
+    spec:   
       serviceAccountName: {{ $.Values.serviceAccount.name }}
       containers:
         - name: modelo-carga
@@ -39,6 +44,23 @@ spec:
             {{- end }}
             - name: RTSP_ENDPOINT
               value: {{ printf "%v?channel=%v&subtype=%v" $v.rtsp $c $v.subtype }}       
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name   
+            - name: PUBSUB_TOPIC
+              value: {{ $v.rtsp.pubsub }}
+            - name: GCP_PROJECT
+              value: {{ $.Values.gcpProject }}     
+            - name: SPOT
+              value: {{ $k }}
+            - name: CHANNEL
+              value: {{ $c }} 
+          {{- if $v.gpu }} 
+          resources:
+            limits:
+              nvidia.com/gpu: 1     
+          {{- end }}
           volumeMounts:
             - name: vol-carga-{{$k}}-ch{{$c}}-data
               mountPath: /app/output

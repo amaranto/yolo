@@ -9,7 +9,28 @@ RTSP=f"rtsp://{RTSP_USER}:{RTSP_PWD}@" if RTSP_USER and RTSP_PWD else "rtsp://"
 RTSP=f"{RTSP}{RTSP_ENDPOINT}"
 cors_origin=os.getenv("CORS_ORIGIN", None)
 CORS_ORIGIN=cors_origin.split(",") if cors_origin else ["*"]
-logging.basicConfig(level=logging.DEBUG)
+
+
+POD = os.getenv("POD", "undefined")
+PUBSUB_TOPIC = os.getenv("PUBSUB_TOPIC", None)
+PROJECT = os.getenv("GCP_PROJECT", None)
+SPOT = int( os.getenv("SPOT", "-1") )
+CHANNEL = int( os.getenv("CHANNEL", "-1"))
+MODEL_TYPE= os.getenv("MODEL_TYPE", "undifined")
+
+degub_levels = {
+    "CRITICAL": 50,
+    "ERROR": 40,
+    "WARNING": 30,
+    "INFO": 20,
+    "DEBUG": 10,
+    "NOTSET": 0
+}
+
+
+DEBUG=os.getenv("DEBUG", "INFO").upper()
+DEBUG=logging.INFO if DEBUG not in degub_levels else degub_levels[DEBUG]
+logging.basicConfig(level=DEBUG)
 
 if not os.path.isdir('output'):
     os.mkdir("output")
