@@ -20,6 +20,9 @@ MODEL_TYPE= os.getenv("MODEL_TYPE", "undifined")
 TRACK_CONF=float(os.getenv("TRACK_CONF", "0.6"))
 TRACK_IOU=float(os.getenv("TRACK_IOU", "0.5"))
 
+AUTH_ENDPOINT=os.getenv("AUTH_ENDPOINT", "https://raizen-sm-cloudrun-980463466363.us-central1.run.app/api/auth/check")
+ENABLE_AUTH=True if os.getenv("ENABLE_AUTH", "true").lower() == "true" else False
+
 degub_levels = {
     "CRITICAL": 50,
     "ERROR": 40,

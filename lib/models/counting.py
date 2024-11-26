@@ -2,9 +2,10 @@ import cv2
 import numpy as np
 import asyncio 
 import traceback
+import numpy as np
+from time import sleep
 from datetime import datetime
 from typing import Callable
-import numpy as np
 from ultralytics import YOLO
 from lib.tools.yolo import from_yolo_to_p1p2
 from lib.tools.draw import draw_bboxes
@@ -18,7 +19,7 @@ class VisionTracking():
         rtsp: str|None,    
         model: str = "yolo11x.pt",
         preview_img: str = "output/counting-preview.jpg",
-        fps: float = 20.0,
+        fps: float = 5.0,
         model_type: str = "conteo",
         fourcc: any = cv2.VideoWriter_fourcc(*'VP90'),
         status_filter_foo:Callable|None=None,
@@ -234,7 +235,7 @@ class VisionTracking():
                 
                 if self.post_processing_foo:
                     await asyncio.gather(*self.post_processing_tasks)
-
+                
             except Exception as e:
                 logger.error(str(e))
                 traceback.print_exc()

@@ -35,10 +35,6 @@ async def stream_output():
 async def stream_output(item_id: str):
     html_content = f'''
     <html>
-        <head>
-            <title>Some HTML in here</title>
-
-        </head>
         <body>
             <video preload="metadata" id="video" src="/stream{url_prefix}/prediction/{item_id}" autoplay="autoplay" />
         </body>
