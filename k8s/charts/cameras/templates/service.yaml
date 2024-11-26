@@ -1,0 +1,45 @@
+{{- range $k, $v := .Values.modeloConteo }}
+{{- range $c := $v.channels }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cameras.fullname" $ }}-conteo-{{$k}}-ch{{$c}}
+  namespace: {{ $.Values.env }}
+  {{- if $v.ingress }}
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+  {{- end }}
+spec:
+  type: NodePort
+  selector:
+    {{- include "cameras.selectorLabels" $ | nindent 4 }}-conteo-{{$k}}-ch{{$c}}
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+{{- end }}
+{{- end }}
+
+{{- range $k, $v := .Values.modeloCarga }}
+{{- range $c := $v.channels }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cameras.fullname" $ }}-carga-{{$k}}-ch{{$c}}
+  namespace: {{ $.Values.env }}
+  {{- if $v.ingress }}
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+  {{- end }}
+spec:
+  type: NodePort
+  selector:
+    {{- include "cameras.selectorLabels" $ | nindent 4 }}-carga-{{$k}}-ch{{$c}}
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+{{- end }}
+{{- end }}

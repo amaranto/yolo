@@ -22,12 +22,14 @@ class VisionTracking():
         preview_img: str = "output/charge-preview.jpg",
         fps: float = 20.0,
         model_type: str = "carga",
+        conf:float=0.6,
+        iou:float=0.5,        
         fourcc: any = cv2.VideoWriter_fourcc(*'VP90'),
         status_filter_foo:Callable|None=None,
         loop_condition:Callable = lambda x : True,
         post_processing_foo:Callable|None = None,
         print_bbox:bool=True,
-        output_folder="output",
+        output_folder:str="output",
         classes: list[int] = [
             0, # person
             1, # bycycle
@@ -57,6 +59,8 @@ class VisionTracking():
             "classes":{},
             "ids":{}
         }        
+        self.conf = conf
+        self.iou = iou 
         self.fourcc = fourcc
         self.__video_output__ = None
         self.post_processing_tasks = []
@@ -153,8 +157,11 @@ class VisionTracking():
         else:
             return False
 
-    async def predict(self, img, tracker="bytetrack.yaml", conf=0.6, iou=0.3, persist=True):
+    async def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True):
         
+        conf = conf if conf else self.conf
+        iou = iou if iou else self.iou
+
         results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist)
         annot = []
         for result in results:

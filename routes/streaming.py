@@ -1,15 +1,17 @@
 import os
 from pathlib import Path
-from fastapi import APIRouter
-from fastapi.responses import StreamingResponse, HTMLResponse
+from fastapi import APIRouter, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import StreamingResponse, HTMLResponse, JSONResponse
 from urllib.parse import unquote
-from config import logging
+from config import logging, SPOT, CHANNEL
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Stream output"], prefix="/stream")
+url_prefix = f"/{SPOT}/{CHANNEL}"
 
-@router.get("/prediction/{video_id}")
+@router.get( url_prefix + "/prediction/{video_id}")
 async def stream_output(video_id: str):
 
     #paths = sorted(Path(f"output/").iterdir(), key=os.path.getmtime)
@@ -21,7 +23,7 @@ async def stream_output(video_id: str):
 
     return StreamingResponse(iterfile(), media_type="video/webm")
 
-@router.get("/original")
+@router.get(url_prefix + "/original")
 async def stream_output():
     def iterfile():   
         with open("output/original.jpg", mode="rb") as file_like:   
@@ -29,7 +31,7 @@ async def stream_output():
 
     return StreamingResponse(iterfile(), media_type="image/jpeg")
 
-@router.get("/video/{item_id}")
+@router.get(url_prefix + "/video/{item_id}")
 async def stream_output(item_id: str):
     html_content = f'''
     <html>
@@ -38,13 +40,13 @@ async def stream_output(item_id: str):
 
         </head>
         <body>
-            <video preload="metadata" id="video" src="http://localhost:8081/stream/prediction/{item_id}" autoplay="autoplay" />
+            <video preload="metadata" id="video" src="/stream{url_prefix}/prediction/{item_id}" autoplay="autoplay" />
         </body>
     </html>
     '''
     return HTMLResponse(content=html_content, status_code=200)
 
-@router.get("/")
+@router.get(url_prefix + "/")
 async def stream_output():
     paths = sorted(Path(f"output/").glob("*.webm"), key=os.path.getmtime)    
 
@@ -60,7 +62,7 @@ async def stream_output():
         video_name=str(path).split("/")[-1]
         html_content += f'''
         <p>
-            <a href="/stream/video/{video_name}">{video_name}</>
+            <a href="/stream{url_prefix}/video/{video_name}">{video_name}</>
         </p>
         '''
 
@@ -69,3 +71,18 @@ async def stream_output():
     </html>
     '''
     return HTMLResponse(content=html_content, status_code=200)
+
+@router.get(url_prefix + "/list")
+async def get_content():
+    paths = sorted(Path(f"output/").glob("*.webm"), key=os.path.getmtime)    
+
+    videos = []
+
+    for path in paths:
+        video_name=str(path).split("/")[-1]
+        videos.append({
+            "name": video_name,
+            "url": f"/stream{url_prefix}/video/{video_name}"
+        })
+
+    return JSONResponse(content=jsonable_encoder({"videos": videos}), status_code=status.HTTP_200_OK)
