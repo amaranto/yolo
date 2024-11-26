@@ -31,12 +31,12 @@ class VisionTracking():
         print_bbox:bool=True,
         output_folder:str="output",
         classes: list[int] = [
-            0, # person
-            1, # bycycle
-            2, # car
-            3, # motorcycle
-            5, # bus
-            7, # truck
+            0, #Experto
+            1, #Matafuego
+            2, #Manguera
+            3, #Balde
+            4, #Cono
+            5, #Valla
         ],
         event_loop: AbstractEventLoop | None = None   
     ):
@@ -71,7 +71,7 @@ class VisionTracking():
 
         for annotation in annotations:
             track_id = annotation['track_id']
-            class_name = 'motorcycle' if annotation['class_name'] == "bicycle" else annotation['class_name']
+            class_name = annotation['class_name']
 
             if class_name not in self.status["classes"]:
                 self.status["classes"][class_name] = { "total": 1 }                      
@@ -96,13 +96,12 @@ class VisionTracking():
     def __draw_bbox__(self,image, annotations):
         
         class_colors = {
-            "truck": (255,0,255),
-            "car": (200,0,100),
-            "motorcycle": (0,0,255),
-            "person":(0,255,0),
-            "cono": (100,100,100),
-            "valde": (30,30,30),
-            "extintor": (90,80,90),
+            "Experto": (255,0,255),
+            "Matafuego": (200,0,100),
+            "Manguera": (0,0,255),
+            "Balde":(0,255,0),
+            "Cono": (100,100,100),
+            "Valla": (30,30,30),
             "default": (255,255,255)
         }
 
@@ -149,13 +148,9 @@ class VisionTracking():
         
     def __enable_video_output__( self ):
         
-        current_time = datetime.now() 
-        truck_is_present = "truck" in self.status["classes"]
-        if truck_is_present:
-            last_truck_frame_delta = current_time - self.status["classes"]["truck"]["last_frame_time"]
-            return last_truck_frame_delta.seconds < 60
-        else:
-            return False
+        delta = self.last_frame - self.start_time
+        logger.debug(delta.seconds)
+        return delta.seconds < 3600 # Create a new stream after 1 hour   
 
     async def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True):
         
@@ -237,7 +232,7 @@ class VisionTracking():
                     if self.__video_output__ is None:
                         xsize, ysize, _ = img.shape
                         timestmp = datetime.now().strftime('%Y-%m-%d_T%H:%M:%S.%f')
-                        output_file = f"{self.output_folder}/charge-{timestmp}.webm"
+                        output_file = f"{self.output_folder}/raizen-classes-{timestmp}.webm"
                         self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
                         logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
 

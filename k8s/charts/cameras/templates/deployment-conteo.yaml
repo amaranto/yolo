@@ -84,6 +84,8 @@ spec:
               value: "{{ $k }}"
             - name: CHANNEL
               value: "{{ $c }}" 
+            - name: ENABLE_AUTH
+              value: "true"              
           ports:
             - containerPort: 8080
           volumeMounts:
