@@ -10,13 +10,15 @@ RTSP=f"{RTSP}{RTSP_ENDPOINT}"
 cors_origin=os.getenv("CORS_ORIGIN", None)
 CORS_ORIGIN=cors_origin.split(",") if cors_origin else ["*"]
 
-
 POD = os.getenv("POD", "undefined")
 PUBSUB_TOPIC = os.getenv("PUBSUB_TOPIC", None)
 PROJECT = os.getenv("GCP_PROJECT", None)
 SPOT = int( os.getenv("SPOT", "-1") )
 CHANNEL = int( os.getenv("CHANNEL", "-1"))
 MODEL_TYPE= os.getenv("MODEL_TYPE", "undifined")
+
+TRACK_CONF=float(os.getenv("TRACK_CONF", "0.6"))
+TRACK_IOU=float(os.getenv("TRACK_IOU", "0.5"))
 
 degub_levels = {
     "CRITICAL": 50,

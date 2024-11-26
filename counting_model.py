@@ -2,7 +2,8 @@ import asyncio, torch
 from datetime import datetime
 from lib.models.counting import VisionTracking
 from lib.models.pubsub import PostProcessing
-from config import RTSP, logging, PUBSUB_TOPIC,PROJECT,POD,CHANNEL,SPOT
+from config import RTSP, logging, PUBSUB_TOPIC,PROJECT,POD,CHANNEL,SPOT,TRACK_CONF, TRACK_IOU
+
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,9 @@ while True:
     visionTracker = VisionTracking(
         model="./yolo/yolo11x.pt",
         rtsp=RTSP,
-        post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None    
+        post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
+        iou=TRACK_IOU,
+        conf=TRACK_CONF
     )
 
     tasks = [

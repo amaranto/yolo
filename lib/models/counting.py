@@ -26,6 +26,8 @@ class VisionTracking():
         post_processing_foo:Callable|None = None,
         print_bbox:bool=True,
         output_folder="output",
+        conf:float=0.6,
+        iou:float=0.5,
         classes: list[int] = [
             0, # person
             1, # bycycle
@@ -48,7 +50,9 @@ class VisionTracking():
         self.start_time: datetime = datetime.now()
         self.previous_frame: datetime = datetime.now()
         self.last_frame: datetime = datetime.now()
-        self.output_folder = output_folder
+        self.output_folder:str = output_folder
+        self.conf = conf
+        self.iou = iou         
         self.status = {
             "model": self.model_type,
             "classes":{},
@@ -135,8 +139,11 @@ class VisionTracking():
         logger.debug(delta.seconds)
         return delta.seconds < 3600 # Create a new stream after 1 hour   
 
-    async def predict(self, img, tracker="bytetrack.yaml", conf=0.6, iou=0.3, persist=True):
+    async def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True):
         
+        conf = conf if conf else self.conf
+        iou = iou if iou else self.iou
+
         results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist)
         annot = []
         for result in results:

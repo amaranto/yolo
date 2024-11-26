@@ -8,21 +8,21 @@ metadata:
   namespace: {{ $.Values.env }}
   labels:
     {{- include "cameras.labels" $ | nindent 4 }}-conteo-{{$k}}-ch{{$c}}
-spec:
-  nodeSelector:
-    iam.gke.io/gke-metadata-server-enabled: "true" 
-    {{- if $v.gpu }}
-    cloud.google.com/gke-accelerator: {{ $v.accelarator }}
-    {{-end }}    
+spec: 
   selector:
     matchLabels:
       {{- include "cameras.selectorLabels" $ | nindent 6 }}-conteo-{{$k}}-ch{{$c}}
   replicas: 1
-  template:
-    metadata:
+  template: 
+    metadata:       
       labels:
         {{- include "cameras.selectorLabels" $ | nindent 8 }}-conteo-{{$k}}-ch{{$c}}
     spec:
+      nodeSelector:
+        iam.gke.io/gke-metadata-server-enabled: "true" 
+        {{- if $v.gpu }}
+        cloud.google.com/gke-accelerator: {{ $v.accelarator }}
+        {{- end }}       
       serviceAccountName: {{ $.Values.serviceAccount.name }}
       containers:
         - name: modelo-conteo
@@ -42,21 +42,34 @@ spec:
                   name: {{ $v.secrets }}
                   key: password
             {{- end }}
+            {{- if $v.conf }}
+            - name: TRACK_CONF
+              value: "{{ $v.conf }}"
+            {{- end }}
+            {{- if $v.iou }}
+            - name: TRACK_IOU
+              value: "{{ $v.iou }}"   
+            {{- end }}            
             - name: RTSP_ENDPOINT
               value: {{ printf "%v?channel=%v&subtype=%v" $v.rtsp $c $v.subtype }}       
-            - name: POD_NAME
+            - name: POD
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name   
             - name: PUBSUB_TOPIC
-              value: {{ $v.rtsp.pubsub }}
+              value: {{ $v.pubsub }}
             - name: GCP_PROJECT
               value: {{ $.Values.gcpProject }}     
             - name: SPOT
-              value: {{ $k }}
+              value: "{{ $k }}"
             - name: CHANNEL
-              value: {{ $c }}     
-                                       
+              value: "{{ $c }}"   
+          {{- if $v.gpu }} 
+          resources:
+            limits:
+              nvidia.com/gpu: 1     
+          {{- end }}
+
           volumeMounts:
             - name: vol-conteo-{{$k}}-ch{{$c}}-data
               mountPath: /app/output
@@ -65,13 +78,26 @@ spec:
         - name: web
           image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
-          command: ["python3", "app.py"]    
+          command: ["python3", "app.py"]  
+          env:  
+            - name: SPOT
+              value: "{{ $k }}"
+            - name: CHANNEL
+              value: "{{ $c }}" 
           ports:
             - containerPort: 8080
           volumeMounts:
             - name: vol-conteo-{{$k}}-ch{{$c}}-data
               mountPath: /app/output
-              readOnly: false   
+              readOnly: false
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080                 
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080                 
       volumes:
         - name: vol-conteo-{{$k}}-ch{{$c}}-data
           emptyDir:
