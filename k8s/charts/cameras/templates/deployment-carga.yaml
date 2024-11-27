@@ -122,6 +122,31 @@ spec:
             - name: vol-carga-{{$k}}-ch{{$c}}-data
               mountPath: /app/output
               readOnly: false
+
+        - name: cleanner
+          image: "ubuntu:24.04"
+          imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+
+          args: 
+          - |
+            while true
+            do
+            echo ----------------------------------------
+            echo deleting files:
+            find /app/output -name *.webm -type f -mmin +${MAX_TIME_MINUTES}
+            find /app/output -name *.webm -type f -mmin +${MAX_TIME_MINUTES} -delete
+            sleep 60
+            echo ----------------------------------------
+            done
+          env:  
+            - name: MAX_TIME_MINUTES
+              value: "90"
+          volumeMounts:
+            - name: vol-carga-{{$k}}-ch{{$c}}-data
+              mountPath: /app/output
+              readOnly: false
+
         - name: web
           image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
