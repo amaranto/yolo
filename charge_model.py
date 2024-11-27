@@ -1,41 +1,39 @@
 import asyncio, torch
-from datetime import datetime
+from lib.tools.streamer import stream
 from lib.models.charge import VisionTracking
 from lib.models.pubsub import PostProcessing
 from config import RTSP, logging, PUBSUB_TOPIC,PROJECT,POD,CHANNEL,SPOT, TRACK_CONF, TRACK_IOU
 
 logger = logging.getLogger(__name__)
 
-if torch.cuda.is_available():
-    logger.info("CUDA is available")
-else:
-    logger.warning("CUDA NOT AVAILABLE !")
+if __name__ == '__main__':
+    
+    if torch.cuda.is_available():
+        logger.info("CUDA is available")
+    else:
+        logger.warning("CUDA NOT AVAILABLE !")    
 
-loop = asyncio.get_event_loop()
+    pubsub = PostProcessing(
+        topic = PUBSUB_TOPIC,
+        project= PROJECT,
+        pod = POD,
+        channel= CHANNEL,
+        spot = SPOT
+    )
 
-pubsub = PostProcessing(
-    topic = PUBSUB_TOPIC,
-    project= PROJECT,
-    pod = POD,
-    channel= CHANNEL,
-    spot = SPOT
-)
-
-while True:
-    timestmp = datetime.now().strftime('%Y-%m-%d_T%H:%M:%S.%f')
-
-    visionTrackerWithoutRecording = VisionTracking(
+    chargeVisionModelTracker = VisionTracking(
         model="./yolo/yolo11x.pt",
-        rtsp=RTSP,
         post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
         iou=TRACK_IOU,
         conf=TRACK_CONF        
     )
 
-    tasks = [
-        loop.create_task(visionTrackerWithoutRecording.stream()),
-    ]
-    loop.run_until_complete(asyncio.wait(tasks))
-    del visionTrackerWithoutRecording 
+    loop = asyncio.get_event_loop()
 
-    logger.debug("Stopping recording and detection for charge model")
+    while True:
+        tasks = [
+            loop.create_task(stream(RTSP,  models=[chargeVisionModelTracker])),
+        ]
+        loop.run_until_complete(asyncio.wait(tasks))
+        logger.debug("Stopping recording and detection for charge model")
+
