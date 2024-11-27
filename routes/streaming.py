@@ -23,10 +23,15 @@ async def stream_output(video_id: str):
 
     return StreamingResponse(iterfile(), media_type="video/webm")
 
-@router.get(url_prefix + "/original")
+@router.get(url_prefix + "/preview")
 async def stream_output():
+    paths = sorted(Path(f"output/").glob("*.jpg"), key=os.path.getmtime)    
+
+    if not paths:
+        return HTMLResponse(content="Image not found", status_code=404)
+
     def iterfile():   
-        with open("output/original.jpg", mode="rb") as file_like:   
+        with open(paths[0], mode="rb") as file_like:   
             yield from file_like
 
     return StreamingResponse(iterfile(), media_type="image/jpeg")
