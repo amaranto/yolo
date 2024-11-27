@@ -6,7 +6,7 @@ images:
   containerImage:
     repository: us-central1-docker.pkg.dev/raizen-genai-01/raizen-sm-artifact/raizen-sm-app
     pullPolicy: IfNotPresent
-    tag: v1.0.11
+    tag: v1.1.0
 
 # imagePullSecret:
 #   name: dockerhub-credentials
@@ -41,12 +41,12 @@ modeloConteo:
     secrets: rtsp-secret
     subtype: 1
     channels:
-    - 1
+    # - 1
     - 2 
-    - 3
-    - 4
+    # - 3
+    # - 4
     - 5
     - 6
-    - 7
-    - 8
+    # - 7
+    # - 8
     - 9

@@ -74,6 +74,54 @@ spec:
               mountPath: /app/output
               readOnly: false    
 
+        - name: modelo-experto
+          image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
+          imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
+          command: ["python3", "expert_model.py"]
+          env:
+            {{- if $v.secrets }}
+            - name: RTSP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $v.secrets }}
+                  key: user
+            - name: RTSP_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $v.secrets }}
+                  key: password
+            {{- end }}
+            {{- if $v.conf }}
+            - name: TRACK_CONF
+              value: "{{ $v.conf }}"
+            {{- end }}
+            {{- if $v.iou }}
+            - name: TRACK_IOU
+              value: "{{ $v.iou }}"   
+            {{- end }}
+            - name: RTSP_ENDPOINT
+              value: {{ printf "%v?channel=%v&subtype=%v" $v.rtsp $c $v.subtype }}       
+            - name: POD
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name   
+            - name: PUBSUB_TOPIC
+              value: {{ $v.pubsub }}
+            - name: GCP_PROJECT
+              value: {{ $.Values.gcpProject }}     
+            - name: SPOT
+              value: "{{ $k }}"
+            - name: CHANNEL
+              value: "{{ $c }}" 
+          {{- if $v.gpu }} 
+          resources:
+            limits:
+              nvidia.com/gpu: 1     
+          {{- end }}
+          volumeMounts:
+            - name: vol-carga-{{$k}}-ch{{$c}}-data
+              mountPath: /app/output
+              readOnly: false
         - name: web
           image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
           imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
