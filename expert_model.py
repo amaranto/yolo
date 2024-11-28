@@ -25,7 +25,8 @@ if __name__ == '__main__':
         model="./yolo/experto.pt",
         post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
         iou=TRACK_IOU,
-        conf=TRACK_CONF        
+        conf=TRACK_CONF,
+        fps=5.0       
     )
 
     loop = asyncio.get_event_loop()

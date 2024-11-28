@@ -142,9 +142,13 @@ class VisionTracking():
         truck_is_present = "truck" in self.status["classes"]
         if truck_is_present:
             last_truck_frame_delta = current_time - self.status["classes"]["truck"]["last_frame_time"]
-            return last_truck_frame_delta.seconds < 60
-        else:
-            return False
+            
+            if last_truck_frame_delta.seconds < 60:
+                return True
+            else:
+                self.status["classes"].pop('truck', None)
+                
+        return False
         
     def __post_predict_actions__(self, img, annotations):
         self.status = self.status_filter_foo(annotations) if self.status_filter_foo else self.__status_filter__(annotations)
