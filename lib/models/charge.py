@@ -174,12 +174,12 @@ class VisionTracking():
 
         self.last_frame = datetime.now()
 
-    async def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True):
+    async def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True, device="cpu"):
         
         conf = conf if conf else self.conf
         iou = iou if iou else self.iou
 
-        results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist)
+        results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
         annot = []
         for result in results:
             boxes = result.boxes 

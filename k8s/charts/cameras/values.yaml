@@ -6,7 +6,7 @@ images:
   containerImage:
     repository: us-central1-docker.pkg.dev/raizen-genai-01/raizen-sm-artifact/raizen-sm-app
     pullPolicy: IfNotPresent
-    tag: v1.1.11
+    tag: v1.1.13
 
 # imagePullSecret:
 #   name: dockerhub-credentials
@@ -59,8 +59,8 @@ modeloConteo:
     channels:
     - 1
     - 2 
-    - 3
-  #   - 4
+  #  - 3
+  #  - 4
 
   1438:
     gpu: true
@@ -75,7 +75,7 @@ modeloConteo:
     channels:
     - 1
     - 2 
-    - 3
+    # - 3
   
   1439:
     gpu: true
@@ -90,7 +90,7 @@ modeloConteo:
     channels:
     - 1
     - 2 
-    - 3
+    # - 3
 
   1482:
     gpu: true
@@ -105,4 +105,4 @@ modeloConteo:
     channels:
     - 1
     - 2 
-    - 3
+    # - 3

@@ -62,11 +62,13 @@ class VisionTracking():
             "classes":{},
             "ids":{}
         }        
+        self.state:list[dict] = []
         self.conf = conf
         self.iou = iou 
         self.fourcc = fourcc
         self.__video_output__ = None
         self.post_processing_tasks = []
+        self.is_alive: bool = True
 
     def __status_filter__(self, annotations:dict):
 
@@ -170,12 +172,37 @@ class VisionTracking():
 
         self.last_frame = datetime.now()
 
-    async def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True):
+    async def start(self):
+        logger.info("Model started")
+        while self.is_alive:
+            logger.info("Model started")
+            if self.state:
+                data = self.state.pop(0)
+                current_img = data["img"]
+                current_annot = data["annotetions"]
+
+                if self.post_processing_foo:
+                    self.post_processing_tasks.append( 
+                        asyncio.create_task(    
+                            self.post_processing_foo(current_annot.copy(), self.status.copy())
+                        )
+                    )
+
+                self.__post_predict_actions__(current_img, current_annot)
+
+                if self.post_processing_foo:
+                    await asyncio.gather(*self.post_processing_tasks)  
+
+    def stop(self):
+        self.is_alive = False
+        return True
+    
+    def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True, device="cpu"):
         
         conf = conf if conf else self.conf
         iou = iou if iou else self.iou
 
-        results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist)
+        results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
         annot = []
         for result in results:
             boxes = result.boxes 
@@ -203,17 +230,10 @@ class VisionTracking():
                     }
                 )
 
-        if self.post_processing_foo:
-            self.post_processing_tasks.append( 
-                asyncio.create_task(    
-                    self.post_processing_foo(annot.copy(), self.status.copy())
-                )
-            )
-
-        self.__post_predict_actions__(img, annot)
-
-        if self.post_processing_foo:
-            await asyncio.gather(*self.post_processing_tasks)
+        self.state.append({
+            "img": img,
+            "annotetions": annot
+        })
 
         return img, results, annot
  

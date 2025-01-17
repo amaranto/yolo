@@ -5,7 +5,7 @@ from config import logging
 
 logger = logging.getLogger(__name__)
 
-async def stream(rtsp:str, models:list[any]):
+def stream(rtsp:str, predict:list[any], device="cpu"):
 
     if rtsp is None:
         raise Exception("RTSP endpoint not configured !")
@@ -30,9 +30,9 @@ async def stream(rtsp:str, models:list[any]):
             if img is None:
                 logger.error("Can not read frame from stream. Releasing stream !")
                 break
-
-            predict_tasks = [asyncio.create_task( m.predict(img=img) ) for m in models ]
-            await asyncio.gather(*predict_tasks)
+            
+            for p in predict:
+                p(img=img, device=device)
             
         except Exception as e:
             logger.error(str(e))

@@ -2,7 +2,7 @@ import asyncio, torch
 from lib.tools.streamer import stream
 from lib.models.raizen import VisionTracking
 from lib.models.pubsub import PostProcessing
-from config import RTSP, logging, PUBSUB_TOPIC,PROJECT,POD,CHANNEL,SPOT, TRACK_CONF, TRACK_IOU
+from config import RTSP, logging, PUBSUB_TOPIC,PROJECT,POD,CHANNEL,SPOT, TRACK_CONF, TRACK_IOU, DEVICE
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +10,9 @@ if __name__ == '__main__':
     
     if torch.cuda.is_available():
         logger.info("CUDA is available")
+        device = DEVICE if DEVICE else "0"
     else:
+        device = DEVICE if DEVICE else "cpu"
         logger.warning("CUDA NOT AVAILABLE !")    
 
     pubsub = PostProcessing(
@@ -33,7 +35,7 @@ if __name__ == '__main__':
 
     while True:
         tasks = [
-            loop.create_task(stream(RTSP,  models=[cexpertVisionModelTracker])),
+            loop.create_task(stream(RTSP,  models=[cexpertVisionModelTracker], device=device)),
         ]
         loop.run_until_complete(asyncio.wait(tasks))
         logger.debug("Stopping recording and detection for charge model")

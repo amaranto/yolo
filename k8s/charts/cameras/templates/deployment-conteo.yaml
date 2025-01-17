@@ -64,11 +64,15 @@ spec:
               value: "{{ $k }}"
             - name: CHANNEL
               value: "{{ $c }}"   
-          {{- if $v.gpu }} 
+
           resources:
             limits:
+              cpu: "2000m"
+              {{- if $v.gpu }}
               nvidia.com/gpu: 1     
-          {{- end }}
+              {{- end }}
+            requests:
+              cpu: "2000m"
 
           volumeMounts:
             - name: vol-conteo-{{$k}}-ch{{$c}}-data
@@ -113,12 +117,17 @@ spec:
             - name: SPOT
               value: "{{ $k }}"
             - name: CHANNEL
-              value: "{{ $c }}" 
-          {{- if $v.gpu }} 
+              value: "{{ $c }}"
+            - name: DUMMY
+              value: deploy              
           resources:
             limits:
+              cpu: "2000m"
+              {{- if $v.gpu }}
               nvidia.com/gpu: 1     
-          {{- end }}
+              {{- end }}
+            requests:
+              cpu: "2000m"
           volumeMounts:
             - name: vol-conteo-{{$k}}-ch{{$c}}-data
               mountPath: /app/output
