@@ -53,6 +53,7 @@ class VisionTracking():
         self.iou = iou 
         self.fourcc = fourcc
         self.__video_output__ = None
+        self.__current_video_output__ = None        
         self.post_processing_tasks = []
 
     def __status_filter__(self, annotations:dict):
@@ -163,6 +164,7 @@ class VisionTracking():
                 xsize, ysize, _ = img.shape
                 timestmp = datetime.now().strftime('%Y-%m-%d_T%H:%M:%S.%f')
                 output_file = f"{self.output_folder}/charge-{timestmp}.webm"
+                self.__current_video_output__ = output_file
                 self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
                 logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
 
@@ -203,7 +205,8 @@ class VisionTracking():
                         "track_id": id,
                         "class_id": clsId,
                         "class_name": clsName,
-                        "conf": conf
+                        "conf": conf,
+                        "video_name": self.__current_video_output__
                     }
                 )
 

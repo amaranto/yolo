@@ -48,13 +48,13 @@ class VisionTracking():
     ):
         self.model:any = YOLO(model)
         self.fps:float = fps
+        self.process_rate: float = 0.0
         self.print_bbox:bool = print_bbox
         self.model_type = model_type
         self.status_filter_foo:Callable = status_filter_foo
         self.post_processing_foo:Callable = post_processing_foo
         self.classes:list[int] = classes
-        self.start_time: datetime = datetime.now()
-        self.previous_frame: datetime = datetime.now()
+        self.start_frame: datetime = datetime.now()
         self.last_frame: datetime = datetime.now()
         self.output_folder = output_folder
         self.status = {
@@ -63,12 +63,13 @@ class VisionTracking():
             "ids":{}
         }        
         self.state:list[dict] = []
+        self.post_processing_tasks = []
+        self.is_alive: bool = True        
         self.conf = conf
         self.iou = iou 
         self.fourcc = fourcc
         self.__video_output__ = None
-        self.post_processing_tasks = []
-        self.is_alive: bool = True
+        self.__current_video_output__ = None
 
     def __status_filter__(self, annotations:dict):
 
@@ -91,8 +92,7 @@ class VisionTracking():
     def __dict__(self):
         return {          
             "status": self.status,
-            "start_time": self.start_time,
-            "previous_frame": self.previous_frame,
+            "start_frame": self.start_frame,
             "last_frame": self.last_frame,
             "fps": self.fps,
             "classes": self.classes
@@ -126,61 +126,73 @@ class VisionTracking():
             text = f"{track_id}: {class_name} {conf}"
             color = class_colors[class_name] if class_name in class_colors else class_colors["default"]
             image = draw_bboxes(image, [{"text": text, "color": color}], p1,p2, font_scale=0.3)
-            
+        
+        display = [
+            {
+                "text": f"FPS: {self.process_rate}",
+                "color": (255,255,255)
+            }   
+        ]
+                
+        display += [ 
+            {
+                "text": f"{k} {v['total']}",
+                "color": class_colors[k] if k in class_colors else class_colors["default"]
+            }
+            for k,v in self.status["classes"].items() 
+        ]
+                
         image = draw_bboxes(
             image, 
-            [ 
-                {
-                    "text": f"{k} {v['total']}",
-                    "color": class_colors[k] if k in class_colors else class_colors["default"]
-                }
-                for k,v in self.status["classes"].items() 
-            ], 
+            display, 
             (0,0), 
             font_scale=0.5
         )
         
         return image
-        
-    def __enable_video_output__( self ):
-        
-        delta = self.last_frame - self.start_time
+
+    def __generate_video_output__(self, xsize, ysize):
+        if self.__video_output__:
+            self.__video_output__.release()
+            self.__video_output__ = None
+ 
+        self.start_frame = datetime.now()
+        timestmp = self.start_frame.strftime('%Y-%m-%d_T%H:%M:%S.%f')
+        output_file = f"{self.output_folder}/counting-{timestmp}.webm"
+        self.__current_video_output__ = output_file        
+        self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
+        logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
+        return self.__video_output__
+    
+    def __has_to_rotate_video__( self ):
+        delta = self.last_frame - self.start_frame
         logger.debug(delta.seconds)
-        return delta.seconds < 3600 # Create a new stream after 1 hour  
-        
+        return delta.seconds > 3600 # Create a new stream after 1 hour  
+    
     def __post_predict_actions__(self, img, annotations):
         self.status = self.status_filter_foo(annotations) if self.status_filter_foo else self.__status_filter__(annotations)
 
         img = self.__draw_bbox__( img, annotations ) if self.print_bbox else img 
-
-        self.previous_frame = self.last_frame
-
-        if self.__enable_video_output__(): 
+        xsize, ysize, _ = img.shape
         
-            if self.__video_output__ is None:
-                xsize, ysize, _ = img.shape
-                timestmp = datetime.now().strftime('%Y-%m-%d_T%H:%M:%S.%f')
-                output_file = f"{self.output_folder}/counting-{timestmp}.webm"
-                self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
-                logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
-
-            logger.debug(f"Video output enabled.")
-            self.__video_output__.write(img)
-        else:
-            self.start_time = datetime.now()
-            self.__video_output__ = None
-
-        self.last_frame = datetime.now()
+        if self.__has_to_rotate_video__(): 
+            self.__generate_video_output__(xsize, ysize)
+        elif self.__video_output__ is None:
+            self.__generate_video_output__(xsize, ysize)
+            
+        self.__video_output__.write(img)
 
     async def start(self):
         logger.info("Model started")
+
         while self.is_alive:
-            logger.info("Model started")
+                
             if self.state:
+                
                 data = self.state.pop(0)
                 current_img = data["img"]
-                current_annot = data["annotetions"]
-
+                current_annot = data["annotations"]
+                
                 if self.post_processing_foo:
                     self.post_processing_tasks.append( 
                         asyncio.create_task(    
@@ -192,17 +204,25 @@ class VisionTracking():
 
                 if self.post_processing_foo:
                     await asyncio.gather(*self.post_processing_tasks)  
+                
+                current_frame = datetime.now()
+                self.process_rate = round(1/(current_frame - self.last_frame).total_seconds())
+                self.last_frame = current_frame
+                logger.info(f"FPS: {self.process_rate}")
+
+            await asyncio.sleep(0.01)
 
     def stop(self):
         self.is_alive = False
         return True
     
-    def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True, device="cpu"):
+    async def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True, device="cpu"):
         
         conf = conf if conf else self.conf
         iou = iou if iou else self.iou
 
-        results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
+        # results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
+        results = self.model.track(img, tracker=tracker,  conf=conf, iou=iou, persist=persist, device=device)
         annot = []
         for result in results:
             boxes = result.boxes 
@@ -226,14 +246,14 @@ class VisionTracking():
                         "track_id": id,
                         "class_id": clsId,
                         "class_name": clsName,
-                        "conf": conf
+                        "conf": conf,
+                        "video_name": self.__current_video_output__
                     }
                 )
-
+                
         self.state.append({
             "img": img,
-            "annotetions": annot
+            "annotations": annot.copy()
         })
-
         return img, results, annot
  

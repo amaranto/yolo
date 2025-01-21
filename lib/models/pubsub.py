@@ -25,7 +25,7 @@ class PubSubAppV2(BaseModel):
     conf: float
     spot: int
     channel: int
-
+    video_name: str
 class PubSubLibrary(BaseModel):
     messages: list[PubSubAppV2]
 
@@ -115,7 +115,8 @@ class PostProcessing(PubSubManager):
                   status={}, # skipping status for the moment
                   track_id=int(annot["track_id"]),
                   class_id=int(annot["class_id"]),
-                  conf = float(annot["conf"])
+                  conf = float(annot["conf"]),
+                  video_name=annot["video_name"]
              ) for annot in annotations
         ]
         

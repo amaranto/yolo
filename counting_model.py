@@ -6,15 +6,15 @@ from config import RTSP, logging, PUBSUB_TOPIC,PROJECT,POD,CHANNEL,SPOT, TRACK_C
 
 logger = logging.getLogger(__name__)
 
-if __name__ == '__main__':
     
-    if torch.cuda.is_available():
-        logger.info("CUDA is available")
-        device = DEVICE if DEVICE else "0"
-    else:
-        device = DEVICE if DEVICE else "cpu"
-        logger.warning("CUDA NOT AVAILABLE !")     
-
+if torch.cuda.is_available():
+    logger.info("CUDA is available")
+    device = DEVICE if DEVICE else "0"
+else:
+    device = DEVICE if DEVICE else "cpu"
+    logger.warning("CUDA NOT AVAILABLE !")     
+        
+async def main():
 
     pubsub = PostProcessing(
         topic = PUBSUB_TOPIC,
@@ -31,13 +31,13 @@ if __name__ == '__main__':
         conf=TRACK_CONF,
         fps=5.0        
     )
-
-
-    loop = asyncio.get_event_loop()
     
-    loop.create_task( 
-        countingVisionModelTracker.start()                
+    results = await asyncio.gather(
+        stream(RTSP,  predict=[countingVisionModelTracker.predict],device=device),            
+        countingVisionModelTracker.start(), 
     )
-    loop.run_forever()
-    stream(RTSP,  predict=[countingVisionModelTracker.predict],device=device)
+    
+    print("Main function is done")
+    print(results)
 
+asyncio.run(main())

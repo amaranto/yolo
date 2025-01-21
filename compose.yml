@@ -16,7 +16,7 @@ services:
     environment:
       RTSP_USER: proyecto
       RTSP_PWD: proyecto2024
-      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=9&subtype=1"    
+      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=25&subtype=1"    
     volumes:
       - ./output:/app/output/
     deploy:          
@@ -34,35 +34,35 @@ services:
     #   timeout: 1s
     restart: always
 
-  charge:
-    image: model-base:latest
-    command: python3 charge_model.py
-    environment:
-      RTSP_USER: proyecto
-      RTSP_PWD: proyecto2024
-      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=25&subtype=1" 
-      POD: local
-      PUBSUB_TOPIC: vision_app
-      GCP_PROJECT: raizen-genai-01
-      SPOT: 1506
-      CHANNEL: 9      
-    volumes:
-      - ./output:/app/output/
-    deploy:          
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+  # charge:
+  #   image: model-base:latest
+  #   command: python3 charge_model.py
+  #   environment:
+  #     RTSP_USER: proyecto
+  #     RTSP_PWD: proyecto2024
+  #     RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=2&subtype=1" 
+  #     POD: local
+  #     PUBSUB_TOPIC: vision_app
+  #     GCP_PROJECT: raizen-genai-01
+  #     SPOT: 1506
+  #     CHANNEL: 2      
+  #   volumes:
+  #     - ./output:/app/output/
+  #   deploy:          
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
 
-    # healthcheck:
-    #   test: ["CMD-SHELL", "lsof -iTCP:2006 -sTCP:LISTEN -P"]
-    #   interval: 10s
-    #   retries: 3
-    #   start_period: 1s
-    #   timeout: 1s
-    restart: always
+  #   # healthcheck:
+  #   #   test: ["CMD-SHELL", "lsof -iTCP:2006 -sTCP:LISTEN -P"]
+  #   #   interval: 10s
+  #   #   retries: 3
+  #   #   start_period: 1s
+  #   #   timeout: 1s
+  #   restart: always
     
 volumes:
   output-volume:
