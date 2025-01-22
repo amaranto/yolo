@@ -13,6 +13,12 @@ CORS_ORIGIN=cors_origin.split(",") if cors_origin else ["*"]
 POD = os.getenv("POD", "undefined")
 PUBSUB_TOPIC = os.getenv("PUBSUB_TOPIC", None)
 PROJECT = os.getenv("GCP_PROJECT", None)
+REGION = os.getenv("GCP_REGION", None)
+SQL_INSTANCE = os.getenv("SQL_INSTANCE", None)
+SQL_USER = os.getenv("SQL_USER", None)
+SQL_PWD = os.getenv("SQL_PWD", None)
+SQL_DB = os.getenv("SQL_DB", "backend_cloudrun")
+SQL_ENABLE_IAM=os.getenv("SQL_ENABLE_IAM", "false").lower() == "true"
 SPOT = int( os.getenv("SPOT", "-1") )
 CHANNEL = int( os.getenv("CHANNEL", "-1"))
 MODEL_TYPE= os.getenv("MODEL_TYPE", "undifined")

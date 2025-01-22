@@ -11,6 +11,7 @@
 # COPY requirements.txt .
 # RUN pip install --break-system-packages -r requirements.txt
 FROM us-central1-docker.pkg.dev/raizen-genai-01/raizen-sm-artifact/cv-model-base:v1.0.0
+RUN pip install "cloud-sql-python-connector[pymysql]" SQLAlchemy --break-system-packages
 
 COPY . .
 EXPOSE 8080

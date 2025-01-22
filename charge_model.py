@@ -1,42 +1,66 @@
 import asyncio, torch
+from sqlalchemy.sql import text
 from lib.tools.streamer import stream
-from lib.models.charge import VisionTracking
+from lib.tools.yolo import from_p1p2_to_yolo
+from lib.models.counting import ChargeTracking
 from lib.models.pubsub import PostProcessing
-from config import RTSP, logging, PUBSUB_TOPIC,PROJECT,POD,CHANNEL,SPOT, TRACK_CONF, TRACK_IOU, DEVICE
+from lib.gcp.cloudsql import pool
+from config import RTSP, logging, PUBSUB_TOPIC,PROJECT, POD,CHANNEL,SPOT, TRACK_CONF, TRACK_IOU, DEVICE
 
 logger = logging.getLogger(__name__)
 
-if __name__ == '__main__':
     
-    if torch.cuda.is_available():
-        logger.info("CUDA is available")
-        device = DEVICE if DEVICE else "0"
-    else:
-        device = DEVICE if DEVICE else "cpu"
-        logger.warning("CUDA NOT AVAILABLE !")        
+if torch.cuda.is_available():
+    logger.info("CUDA is available")
+    device = DEVICE if DEVICE else "0"
+else:
+    device = DEVICE if DEVICE else "cpu"
+    logger.warning("CUDA NOT AVAILABLE !")     
+        
+pubsub = PostProcessing(
+    topic = PUBSUB_TOPIC,
+    project= PROJECT,
+    pod = POD,
+    channel= CHANNEL,
+    spot = SPOT
+)
 
-    pubsub = PostProcessing(
-        topic = PUBSUB_TOPIC,
-        project= PROJECT,
-        pod = POD,
-        channel= CHANNEL,
-        spot = SPOT
+chargeVisionModelTracker = ChargeTracking(
+    model="./yolo/epoch22.pt",
+    model_type="carga",
+    post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
+    iou=TRACK_IOU,
+    conf=TRACK_CONF,
+    fps=5.0,
+    enable_video_output=True        
+)
+
+async def get_roi():
+    query = text(
+        "SELECT x1,x2,y1,y2,width,height FROM Segmentations WHERE station=':station' AND channel=':channel'"
     )
-
-    chargeVisionModelTracker = VisionTracking(
-        model="./yolo/yolo11x.pt",
-        post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
-        iou=TRACK_IOU,
-        conf=TRACK_CONF,
-        fps=5.0        
-    )
-
-    loop = asyncio.get_event_loop()
-
     while True:
-        tasks = [
-            loop.create_task(stream(RTSP,  models=[chargeVisionModelTracker], device=device))
-        ]
-        loop.run_until_complete(asyncio.wait(tasks))
-        logger.debug("Stopping recording and detection for charge model")
+        conn = pool.connect()
+        result = conn.execute(query, { "station": SPOT, "channel": CHANNEL }).fetchone()
+        logger.info(f"ROI: {result}")
+        
+        if result:
+            x1,x2,y1,y2,w,h = result
+            x1,x2,y1,y2,w,h = int(float(x1)), int(float(x2)), int(float(y1)), int(float(y2)), int(float(w)), int(float(h))
+            roi_yolo = from_p1p2_to_yolo((x1,y1), (x2,y2), (h,w))
+            chargeVisionModelTracker.roi = roi_yolo
+        conn.close()            
+        await asyncio.sleep(10)
 
+            
+async def main():    
+    results = await asyncio.gather(
+        get_roi(),
+        stream(RTSP,  predict=[chargeVisionModelTracker.predict],device=device),            
+        chargeVisionModelTracker.start(), 
+    )
+    
+    print("Main function is done")
+    print(results)
+
+asyncio.run(main())

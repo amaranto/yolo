@@ -25,7 +25,7 @@ class PubSubAppV2(BaseModel):
     conf: float
     spot: int
     channel: int
-    video_name: str
+    video_name: str|None
 class PubSubLibrary(BaseModel):
     messages: list[PubSubAppV2]
 
