@@ -16,9 +16,18 @@ services:
     environment:
       RTSP_USER: proyecto
       RTSP_PWD: proyecto2024
-      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=25&subtype=1"    
+      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=25&subtype=1" 
+      SQL_USER: app-user
+      SQL_PWD: 1f1tyx@=kug^F%St
+      SQL_INSTANCE: raizen-sm-sql
+      SPOT: 1506
+      CHANNEL: 25   
+      GCP_PROJECT: raizen-genai-01
+      GCP_REGION: us-central1
+      GOOGLE_CLOUD_PROJECT: raizen-genai-01
     volumes:
       - ./output:/app/output/
+      - ~/.config/gcloud:/root/.config/gcloud
     deploy:          
       resources:
         reservations:

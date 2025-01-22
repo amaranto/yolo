@@ -31,6 +31,7 @@ async def stream(rtsp:str, predict:list[any], device="cpu"):
         
         while cap.isOpened():
             try:
+                # Limit the frame rate to 10 FPS
                 if frame_count > 10 or (datetime.now() - frame_time).total_seconds() > 1:
                     frame_count = 0
                     frame_time = datetime.now()

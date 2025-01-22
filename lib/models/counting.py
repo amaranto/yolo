@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime
 from typing import Callable
 from ultralytics import YOLO
-from lib.tools.yolo import from_yolo_to_p1p2
+from lib.tools.yolo import from_yolo_to_p1p2, from_p1p2_to_yolo
 from lib.tools.draw import draw_bboxes
 from config import logging
 
@@ -32,6 +32,7 @@ class VisionTracking():
         model_type: str = "carga",
         conf:float=0.6,
         iou:float=0.5,        
+        roi: tuple[int,int,int,int]|None = (0.5,0.5,1,1), # ROI in YOLO format
         fourcc: any = cv2.VideoWriter_fourcc(*'VP90'),
         status_filter_foo:Callable|None=None,
         post_processing_foo:Callable|None = None,
@@ -48,6 +49,7 @@ class VisionTracking():
     ):
         self.model:any = YOLO(model)
         self.fps:float = fps
+        self.roi:tuple[int,int,int,int] = roi
         self.process_rate: float = 0.0
         self.print_bbox:bool = print_bbox
         self.model_type = model_type
@@ -98,7 +100,7 @@ class VisionTracking():
             "classes": self.classes
         }
 
-    def __draw_bbox__(self,image, annotations):
+    def __draw_bbox__(self,image, annotations, draw_roi=True):
 
         class_colors = {
             "truck": (255,0,255),
@@ -108,7 +110,8 @@ class VisionTracking():
             "cono": (100,100,100),
             "valde": (30,30,30),
             "extintor": (90,80,90),
-            "default": (255,255,255)
+            "default": (255,255,255),
+            "roi": (100,150,200)
         }
 
         for annotation in annotations:
@@ -149,6 +152,21 @@ class VisionTracking():
             font_scale=0.5
         )
         
+        if draw_roi:
+            p1,p2 = from_yolo_to_p1p2(self.roi[0], self.roi[1], self.roi[2], self.roi[3], (image.shape[0], image.shape[1]) )
+            image = draw_bboxes(
+                image,
+                [ 
+                    {
+                        "text": "",
+                        "color": class_colors["roi"]
+                    }
+                ], 
+                p1,
+                p2,
+                font_scale=0.0
+            )
+            
         return image
 
     def __generate_video_output__(self, xsize, ysize):
@@ -172,7 +190,7 @@ class VisionTracking():
     def __post_predict_actions__(self, img, annotations):
         self.status = self.status_filter_foo(annotations) if self.status_filter_foo else self.__status_filter__(annotations)
 
-        img = self.__draw_bbox__( img, annotations ) if self.print_bbox else img 
+        img = self.__draw_bbox__( img, annotations) if self.print_bbox else img 
         xsize, ysize, _ = img.shape
         
         if self.__has_to_rotate_video__(): 
@@ -220,7 +238,7 @@ class VisionTracking():
         
         conf = conf if conf else self.conf
         iou = iou if iou else self.iou
-
+        rx, ry, rw, rh = self.roi
         # results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
         results = self.model.track(img, tracker=tracker,  conf=conf, iou=iou, persist=persist, device=device)
         annot = []
@@ -231,7 +249,8 @@ class VisionTracking():
                 continue
 
             for id, cls, (x,y,w,h), conf in zip(boxes.id, boxes.cls, boxes.xywhn, boxes.conf):
-
+                if not (rx-(rw/2) < x < rx+(rw/2) and ry-(rh/2) < y < ry+(rh/2)):
+                    continue
                 id = int(id)
                 clsId = int(cls)
                 clsName = self.model.names[clsId]
@@ -247,7 +266,7 @@ class VisionTracking():
                         "class_id": clsId,
                         "class_name": clsName,
                         "conf": conf,
-                        "video_name": self.__current_video_output__
+                        "video_name": self.__current_video_output__,
                     }
                 )
                 
