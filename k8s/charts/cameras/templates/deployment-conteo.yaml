@@ -64,7 +64,21 @@ spec:
               value: "{{ $k }}"
             - name: CHANNEL
               value: "{{ $c }}"   
-
+            - name: SQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.secrets.cloudsql }}
+                  key: user
+            - name: SQL_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.secrets.cloudsql }}
+                  key: password
+            - name: SQL_INSTANCE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.Values.secrets.cloudsql }}
+                  key: instance  
           resources:
             limits:
               cpu: "2000m"
@@ -79,59 +93,72 @@ spec:
               mountPath: /app/output
               readOnly: false    
 
-        - name: modelo-experto
-          image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
-          imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
-          command: ["python3", "expert_model.py"]
-          env:
-            {{- if $v.secrets }}
-            - name: RTSP_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $v.secrets }}
-                  key: user
-            - name: RTSP_PWD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $v.secrets }}
-                  key: password
-            {{- end }}
-            {{- if $v.conf }}
-            - name: TRACK_CONF
-              value: "{{ $v.conf }}"
-            {{- end }}
-            {{- if $v.iou }}
-            - name: TRACK_IOU
-              value: "{{ $v.iou }}"   
-            {{- end }}
-            - name: RTSP_ENDPOINT
-              value: {{ printf "%v?channel=%v&subtype=%v" $v.rtsp $c $v.subtype }}       
-            - name: POD
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name   
-            - name: PUBSUB_TOPIC
-              value: {{ $v.pubsub }}
-            - name: GCP_PROJECT
-              value: {{ $.Values.gcpProject }}     
-            - name: SPOT
-              value: "{{ $k }}"
-            - name: CHANNEL
-              value: "{{ $c }}"
-            - name: DUMMY
-              value: deploy              
-          resources:
-            limits:
-              cpu: "2000m"
-              {{- if $v.gpu }}
-              nvidia.com/gpu: 1     
-              {{- end }}
-            requests:
-              cpu: "2000m"
-          volumeMounts:
-            - name: vol-conteo-{{$k}}-ch{{$c}}-data
-              mountPath: /app/output
-              readOnly: false
+        # - name: modelo-experto
+        #   image: "{{ $.Values.images.containerImage.repository }}:{{ $.Values.images.containerImage.tag | default $.Chart.AppVersion }}"
+        #   imagePullPolicy: {{ $.Values.images.containerImage.pullPolicy }}
+        #   command: ["python3", "expert_model.py"]
+        #   env:
+        #     {{- if $v.secrets }}
+        #     - name: RTSP_USER
+        #       valueFrom:
+        #         secretKeyRef:
+        #           name: {{ $v.secrets }}
+        #           key: user
+        #     - name: RTSP_PWD
+        #       valueFrom:
+        #         secretKeyRef:
+        #           name: {{ $v.secrets }}
+        #           key: password
+        #     {{- end }}
+        #     {{- if $v.conf }}
+        #     - name: TRACK_CONF
+        #       value: "{{ $v.conf }}"
+        #     {{- end }}
+        #     {{- if $v.iou }}
+        #     - name: TRACK_IOU
+        #       value: "{{ $v.iou }}"   
+        #     {{- end }}
+        #     - name: RTSP_ENDPOINT
+        #       value: {{ printf "%v?channel=%v&subtype=%v" $v.rtsp $c $v.subtype }}       
+        #     - name: POD
+        #       valueFrom:
+        #         fieldRef:
+        #           fieldPath: metadata.name   
+        #     - name: PUBSUB_TOPIC
+        #       value: {{ $v.pubsub }}
+        #     - name: GCP_PROJECT
+        #       value: {{ $.Values.gcpProject }}     
+        #     - name: SPOT
+        #       value: "{{ $k }}"
+        #     - name: CHANNEL
+        #       value: "{{ $c }}"
+        #     - name: SQL_USER
+        #       valueFrom:
+        #         secretKeyRef:
+        #           name: {{ $.Values.secrets.cloudsql }}
+        #           key: user
+        #     - name: SQL_PWD
+        #       valueFrom:
+        #         secretKeyRef:
+        #           name: {{ $.Values.secrets.cloudsql }}
+        #           key: password
+        #     - name: SQL_INSTANCE
+        #       valueFrom:
+        #         secretKeyRef:
+        #           name: {{ $.Values.secrets.cloudsql }}
+        #           key: instance               
+        #   resources:
+        #     limits:
+        #       cpu: "2000m"
+        #       {{- if $v.gpu }}
+        #       nvidia.com/gpu: 1     
+        #       {{- end }}
+        #     requests:
+        #       cpu: "2000m"
+        #   volumeMounts:
+        #     - name: vol-conteo-{{$k}}-ch{{$c}}-data
+        #       mountPath: /app/output
+        #       readOnly: false
 
         - name: cleanner
           image: "ubuntu:24.04"

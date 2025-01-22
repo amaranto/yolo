@@ -1,3 +1,21 @@
+# WARNING: this roles are too permissive, only use for POC environment
+# helm upgrade --install sm-poc .
+#
+# To bind the service account to the workload identity pool, run the following command:
+# gcloud projects add-iam-policy-binding projects/raizen-genai-01 \
+#     --role=roles/pubsub.admin \
+#     --member=principal://iam.googleapis.com/projects/980463466363/locations/global/workloadIdentityPools/raizen-genai-01.svc.id.goog/subject/ns/poc/sa/computer-vision-app \
+#     --condition=None
+
+# gcloud projects add-iam-policy-binding projects/raizen-genai-01 \
+#     --role=roles/storage.objectAdmin \
+#     --member=principal://iam.googleapis.com/projects/980463466363/locations/global/workloadIdentityPools/raizen-genai-01.svc.id.goog/subject/ns/poc/sa/computer-vision-app \
+#     --condition=None
+
+# gcloud projects add-iam-policy-binding projects/raizen-genai-01 \
+#     --role=roles/cloudsql.client \
+#     --member=principal://iam.googleapis.com/projects/980463466363/locations/global/workloadIdentityPools/raizen-genai-01.svc.id.goog/subject/ns/poc/sa/computer-vision-app \
+#     --condition=None
 replicaCount: 1
 env: poc
 gcpProject: raizen-genai-01
@@ -6,14 +24,17 @@ images:
   containerImage:
     repository: us-central1-docker.pkg.dev/raizen-genai-01/raizen-sm-artifact/raizen-sm-app
     pullPolicy: IfNotPresent
-    tag: v1.1.13
+    tag: v2.0.0
 
 # imagePullSecret:
 #   name: dockerhub-credentials
+secrets:
+  cloudsql: clousql-secret
 
 serviceAccount:
   create: true
   name: computer-vision-app
+
 
 modeloCarga:
   1506:
@@ -26,6 +47,7 @@ modeloCarga:
     rtsp: "11.37.69.100/cam/realmonitor"
     secrets: rtsp-secret
     subtype: 1
+    gcsbucket: "raizen-training-data"
     channels:
     - 25
 

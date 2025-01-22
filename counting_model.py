@@ -27,6 +27,7 @@ pubsub = PostProcessing(
 
 countingVisionModelTracker = VisionTracking(
     model="./yolo/yolo11x.pt",
+    model_name=f"{SPOT}_{CHANNEL}",
     model_type="conteo",
     post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
     iou=TRACK_IOU,

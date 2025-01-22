@@ -28,6 +28,7 @@ pubsub = PostProcessing(
 chargeVisionModelTracker = ChargeTracking(
     model="./yolo/epoch22.pt",
     model_type="carga",
+    model_name=f"{SPOT}_{CHANNEL}",
     post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
     iou=TRACK_IOU,
     conf=TRACK_CONF,

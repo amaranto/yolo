@@ -29,8 +29,9 @@ class BaseModel():
     def __init__(
         self,
         model: str,
+        model_name: str,
+        model_type: str = "carga",        
         fps: float = 10.0,
-        model_type: str = "carga",
         conf:float=0.6,
         iou:float=0.5,        
         roi: tuple[int,int,int,int]|None = (0.5,0.5,1,1), # ROI in YOLO format
@@ -50,11 +51,12 @@ class BaseModel():
         enable_video_output:bool=True
     ):
         self.model:any = YOLO(model)
+        self.model_name = model_name
+        self.model_type = model_type        
         self.fps:float = fps
         self.roi:tuple[int,int,int,int] = roi
         self.process_rate: float = 0.0
         self.print_bbox:bool = print_bbox
-        self.model_type = model_type
         self.status_filter_foo:Callable = status_filter_foo
         self.post_processing_foo:Callable = post_processing_foo
         self.classes:list[int] = classes
@@ -176,8 +178,8 @@ class BaseModel():
             self.__video_output__ = None
  
         self.start_frame = datetime.now()
-        timestmp = self.start_frame.strftime('%Y-%m-%d_T%H:%M:%S.%f')
-        output_file = f"{self.output_folder}/counting-{timestmp}.webm"
+        timestmp = self.start_frame.strftime('%Y-%m-%d_T%H-%M-%S')
+        output_file = f"{self.output_folder}/{self.model_type}-{self.model_name}-{timestmp}.webm"
         self.__current_video_output__ = output_file        
         self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
         logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
