@@ -60,6 +60,8 @@ spec:
               value: {{ $v.pubsub }}
             - name: GCP_PROJECT
               value: {{ $.Values.gcpProject }}     
+            - name: GCP_REGION
+              value: us-central1
             - name: SPOT
               value: "{{ $k }}"
             - name: CHANNEL

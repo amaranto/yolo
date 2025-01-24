@@ -24,7 +24,7 @@ images:
   containerImage:
     repository: us-central1-docker.pkg.dev/raizen-genai-01/raizen-sm-artifact/raizen-sm-app
     pullPolicy: IfNotPresent
-    tag: v2.0.0
+    tag: v2.0.4
 
 # imagePullSecret:
 #   name: dockerhub-credentials

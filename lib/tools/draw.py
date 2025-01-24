@@ -2,7 +2,7 @@ import cv2
 from config import logging
 logger = logging.getLogger(__name__)
 
-def draw_bboxes(image, msgs:list[dict], p1: tuple[int,int], p2: tuple[int,int]|None=None,font:int = cv2.FONT_HERSHEY_SIMPLEX, font_scale: float=1.0):
+def draw_bboxes(image, msgs:list[dict], p1: tuple[int,int], p2: tuple[int,int]|None=None,font:int = cv2.FONT_HERSHEY_SIMPLEX, font_scale: float=1.0, thickness:int=2, lineType:int =1 )->None:
 
     text_position = (p1[0], p1[1]+10)     
     max_text_width = 0
@@ -20,6 +20,6 @@ def draw_bboxes(image, msgs:list[dict], p1: tuple[int,int], p2: tuple[int,int]|N
         
         # If p2 is not defined only draw bbox with description
         if p2:
-            image = cv2.rectangle(image, p2, p1, color=(255,0,0))    
+            image = cv2.rectangle(image, p2, p1, color=(255,0,0), thickness=thickness, lineType=lineType)    
     
     return image

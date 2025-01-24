@@ -167,7 +167,9 @@ class BaseModel():
                 ], 
                 p1,
                 p2,
-                font_scale=0.0
+                font_scale=0.0,
+                thickness=5,
+                lineType=2
             )
             
         return image
@@ -237,8 +239,8 @@ class BaseModel():
         conf = conf if conf else self.conf
         iou = iou if iou else self.iou
         rx, ry, rw, rh = self.roi
-        # results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
-        results = self.model.track(img, tracker=tracker,  conf=conf, iou=iou, persist=persist, device=device)
+        results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
+        # results = self.model.track(img, tracker=tracker,  conf=conf, iou=iou, persist=persist, device=device)
         annot = []
         for result in results:
             boxes = result.boxes 
@@ -279,6 +281,7 @@ class VisionTracking(BaseModel):
 
 class ChargeTracking(BaseModel):
     def __has_to_rotate_video__( self ):
+        
         current_time = datetime.now() 
         truck_is_present = "truck" in self.status["classes"]
         if truck_is_present:
