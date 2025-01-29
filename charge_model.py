@@ -8,7 +8,6 @@ from lib.gcp.cloudsql import pool
 from config import RTSP, logging, PUBSUB_TOPIC,PROJECT, POD,CHANNEL,SPOT, TRACK_CONF, TRACK_IOU, DEVICE
 
 logger = logging.getLogger(__name__)
-
     
 if torch.cuda.is_available():
     logger.info("CUDA is available")
@@ -26,14 +25,31 @@ pubsub = PostProcessing(
 )
 
 chargeVisionModelTracker = ChargeTracking(
-    model="./yolo/yolo11x.pt",
+    model="./yolo/epoch1.pt",
     model_type="carga",
     model_name=f"{SPOT}_{CHANNEL}",
     post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
     iou=TRACK_IOU,
     conf=TRACK_CONF,
     fps=5.0,
-    enable_video_output=True        
+    enable_video_output=True,
+    classes= [
+        0, # person
+        1, # bycycle
+        2, # car
+        3, # motorcycle
+        5, # bus
+        7, # truck
+        81, # Experto
+        82, # Matafuego
+        83, # Manguera
+        84, # Balde
+        85, # Cono
+        86, # Valla
+        87, # BocaCarga
+        88, # Operario
+        89  # CamionShell
+    ]  
 )
 
 async def get_roi():

@@ -47,6 +47,15 @@ class BaseModel():
             3, # motorcycle
             5, # bus
             7, # truck
+            81, # Experto
+            82, # Matafuego
+            83, # Manguera
+            84, # Balde
+            85, # Cono
+            86, # Valla
+            87, # BocaCarga
+            88, # Operario
+            89  # CamionShell
         ],
         enable_video_output:bool=True
     ):

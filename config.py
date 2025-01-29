@@ -23,8 +23,8 @@ SPOT = int( os.getenv("SPOT", "-1") )
 CHANNEL = int( os.getenv("CHANNEL", "-1"))
 MODEL_TYPE= os.getenv("MODEL_TYPE", "undifined")
 
-TRACK_CONF=float(os.getenv("TRACK_CONF", "0.1"))
-TRACK_IOU=float(os.getenv("TRACK_IOU", "0.9"))
+TRACK_CONF=float(os.getenv("TRACK_CONF", "0.6"))
+TRACK_IOU=float(os.getenv("TRACK_IOU", "0.6"))
 
 AUTH_ENDPOINT=os.getenv("AUTH_ENDPOINT", "https://raizen-sm-cloudrun-980463466363.us-central1.run.app/api/auth/check")
 ENABLE_AUTH=True if os.getenv("ENABLE_AUTH", "true").lower() == "true" else False

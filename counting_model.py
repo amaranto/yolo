@@ -26,15 +26,31 @@ pubsub = PostProcessing(
 )
 
 countingVisionModelTracker = VisionTracking(
-    model="./yolo/yolo11x.pt",
+    model="./yolo/last.pt",
     model_name=f"{SPOT}_{CHANNEL}",
     model_type="conteo",
     post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
     iou=TRACK_IOU,
     conf=TRACK_CONF,
-    fps=5.0        
+    fps=5.0,
+    classes= [
+        0, # person
+        1, # bycycle
+        2, # car
+        3, # motorcycle
+        5, # bus
+        7, # truck
+        81, # Experto
+        82, # Matafuego
+        83, # Manguera
+        84, # Balde
+        85, # Cono
+        86, # Valla
+        87, # BocaCarga
+        88, # Operario
+        89  # CamionShell
+    ]              
 )
-
 
 async def get_roi():
     query = text(
