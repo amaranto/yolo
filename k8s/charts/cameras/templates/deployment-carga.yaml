@@ -65,11 +65,7 @@ spec:
             - name: SPOT
               value: "{{ $k }}"
             - name: CHANNEL
-              value: "{{ $c }}" 
-            - name: SPOT
-              value: "{{ $k }}"
-            - name: CHANNEL
-              value: "{{ $c }}"             
+              value: "{{ $c }}"           
             - name: SQL_USER
               valueFrom:
                 secretKeyRef:
@@ -88,11 +84,13 @@ spec:
           resources:
             limits:
               cpu: "2000m"
+              memory: "4Gi"
               {{- if $v.gpu }}
               nvidia.com/gpu: 1     
               {{- end }}
             requests:
               cpu: "2000m"
+              memory: "4Gi"
           volumeMounts:
             - name: vol-carga-{{$k}}-ch{{$c}}-data
               mountPath: /app/output

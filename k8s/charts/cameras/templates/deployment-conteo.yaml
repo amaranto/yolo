@@ -84,11 +84,13 @@ spec:
           resources:
             limits:
               cpu: "2000m"
+              memory: "4Gi"
               {{- if $v.gpu }}
               nvidia.com/gpu: 1     
               {{- end }}
             requests:
               cpu: "2000m"
+              memory: "4Gi"
 
           volumeMounts:
             - name: vol-conteo-{{$k}}-ch{{$c}}-data

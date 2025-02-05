@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import asyncio 
 import numpy as np
+import time
+import torch
 from datetime import datetime
 from typing import Callable
 from ultralytics import YOLO
@@ -41,21 +43,20 @@ class BaseModel():
         print_bbox:bool=True,
         output_folder:str="output",
         classes: list[int] = [
-            0, # person
-            1, # bycycle
-            2, # car
-            3, # motorcycle
-            5, # bus
-            7, # truck
-            81, # Experto
-            82, # Matafuego
-            83, # Manguera
-            84, # Balde
-            85, # Cono
-            86, # Valla
-            87, # BocaCarga
-            88, # Operario
-            89  # CamionShell
+            0, 
+            1, 
+            2, 
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
         ],
         enable_video_output:bool=True
     ):
@@ -85,7 +86,8 @@ class BaseModel():
         self.__enable_video_output__: bool = enable_video_output
         self.__video_output__ = None
         self.__current_video_output__ = None
-
+        self.__processing_flag__ = False
+        
     def __status_filter__(self, annotations:dict):
 
         frame_time = datetime.now()
@@ -95,10 +97,10 @@ class BaseModel():
             class_name = 'motorcycle' if annotation['class_name'] == "bicycle" else annotation['class_name']
 
             if class_name not in self.status["classes"]:
-                self.status["classes"][class_name] = { "total": 1 }                      
+                self.status["classes"][class_name] = { "total": 0 }                      
             self.status["classes"][class_name]["last_frame_time"] = frame_time
             
-            if track_id not in self.status["ids"]:
+            if track_id not in self.status["ids"] and track_id != -1:
                 self.status["ids"][track_id] = class_name
                 self.status["classes"][class_name]["total"] += 1
 
@@ -128,6 +130,7 @@ class BaseModel():
         }
 
         for annotation in annotations:
+            
             p1,p2 = from_yolo_to_p1p2(
                 annotation["x"],
                 annotation["y"],
@@ -136,7 +139,7 @@ class BaseModel():
                 (image.shape[0], image.shape[1]) 
             )
             conf = annotation['conf']
-            track_id = annotation['track_id']
+            track_id = annotation['track_id'] if annotation['track_id'] != -1 else "N/A"
             class_name = 'motorcycle' if annotation['class_name'] == "bicycle" else annotation['class_name']
             text = f"{track_id}: {class_name} {conf}"
             color = class_colors[class_name] if class_name in class_colors else class_colors["default"]
@@ -224,7 +227,6 @@ class BaseModel():
                 data = self.state.pop(0)
                 current_img = data["img"]
                 current_annot = data["annotations"]
-                
                 self.__post_predict_actions__(current_img, current_annot)
                 if self.post_processing_foo and self.__enable_video_output__:
                     async_foo = asyncio.create_task(    
@@ -236,34 +238,43 @@ class BaseModel():
                 self.process_rate = round(1/(current_frame - self.last_frame).total_seconds())
                 self.last_frame = current_frame
                 logger.info(f"Throughput FPS: {self.process_rate}")
-
+            
             await asyncio.sleep(0.01)
 
     def stop(self):
         self.is_alive = False
         return True
     
-    async def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True, device="cpu"):
+    def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True, device="cpu"):
         
         conf = conf if conf else self.conf
         iou = iou if iou else self.iou
         rx, ry, rw, rh = self.roi
-        results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
-        # results = self.model.track(img, tracker=tracker,  conf=conf, iou=iou, persist=persist, device=device)
+        
+        while self.__processing_flag__:
+            time.sleep(0.1)
+        self.__processing_flag__ = True
+        
+        # results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
+        results = self.model.track(img.copy(), tracker=tracker,  conf=conf, iou=iou, persist=persist, device=device)
         annot = []
+        
         for result in results:
             boxes = result.boxes 
 
             if boxes.id is None: 
-                continue
-
-            for id, cls, (x,y,w,h), conf in zip(boxes.id, boxes.cls, boxes.xywhn, boxes.conf):
+                boxes_result = zip([-1 for _ in range(len(boxes)) ],boxes.cls, boxes.xywhn, boxes.conf.cpu().numpy())
+            else:
+                boxes_result = zip(boxes.id, boxes.cls, boxes.xywhn, boxes.conf)
+                        
+            for id, cls, (x,y,w,h), conf in boxes_result:
                 if not (rx-(rw/2) < x < rx+(rw/2) and ry-(rh/2) < y < ry+(rh/2)):
                     continue
+                    
                 id = int(id)
                 clsId = int(cls)
                 clsName = self.model.names[clsId]
-                conf = np.round( conf * 100 )
+                conf = np.round(conf * 100, 2)
 
                 annot.append(
                     {
@@ -278,11 +289,14 @@ class BaseModel():
                         "video_name": self.__current_video_output__,
                     }
                 )
-                
-        self.state.append({
-            "img": img,
+        
+        metadata = {
+            "img": img.copy(),
             "annotations": annot.copy()
-        })
+        }         
+        
+        self.state.append(metadata)
+        self.__processing_flag__ = False
         return img, results, annot
  
 class VisionTracking(BaseModel):

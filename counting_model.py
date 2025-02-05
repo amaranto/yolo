@@ -38,17 +38,16 @@ countingVisionModelTracker = VisionTracking(
         1, # bycycle
         2, # car
         3, # motorcycle
-        5, # bus
-        7, # truck
-        81, # Experto
-        82, # Matafuego
-        83, # Manguera
-        84, # Balde
-        85, # Cono
-        86, # Valla
-        87, # BocaCarga
-        88, # Operario
-        89  # CamionShell
+        4, # bus
+        5, # truck
+        6, # Experto
+        7, # Matafuego
+        8, # Manguera
+        9, # Balde
+        10, # Cono
+        11, # Valla
+        12, # BocaCarga
+        13, # Operario
     ]              
 )
 

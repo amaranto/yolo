@@ -24,7 +24,7 @@ images:
   containerImage:
     repository: us-central1-docker.pkg.dev/raizen-genai-01/raizen-sm-artifact/raizen-sm-app
     pullPolicy: IfNotPresent
-    tag: v2.0.4
+    tag: v2.1.0
 
 # imagePullSecret:
 #   name: dockerhub-credentials
@@ -55,7 +55,7 @@ modeloConteo:
   1506:
     gpu: true
     ingress: true
-    iou: "0.6"
+    iou: "0.4"
     conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -71,7 +71,7 @@ modeloConteo:
   1716:
     gpu: true
     ingress: true
-    iou: "0.6"
+    iou: "0.4"
     conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -81,13 +81,14 @@ modeloConteo:
     channels:
     - 1
     - 2 
-  #  - 3
-  #  - 4
+    - 3
+    - 4
+    - 5
 
   1438:
     gpu: true
     ingress: true
-    iou: "0.6"
+    iou: "0.4"
     conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -97,12 +98,13 @@ modeloConteo:
     channels:
     - 1
     - 2 
-    # - 3
-  
+    - 3
+    - 4
+    - 5 
   1439:
     gpu: true
     ingress: true
-    iou: "0.6"
+    iou: "0.4"
     conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -112,12 +114,14 @@ modeloConteo:
     channels:
     - 1
     - 2 
-    # - 3
+    - 3
+    - 4
+    - 5 
 
   1482:
     gpu: true
     ingress: true
-    iou: "0.6"
+    iou: "0.4"
     conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -127,4 +131,6 @@ modeloConteo:
     channels:
     - 1
     - 2 
-    # - 3
+    - 3
+    - 4 
+    - 5

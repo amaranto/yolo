@@ -45,11 +45,11 @@ async def stream(rtsp:str, predict:list[any], device="cpu"):
                     break
                 
                 for p in predict:
-                    await p(img=img, device=device)
+                    p(img=img, device=device)
                                     
                 c2 = cv2.getTickCount()
                 time_taken = (c2 - c1)/ cv2.getTickFrequency() 
-                await asyncio.sleep(0.001)
+                await asyncio.sleep(0.1)
                 logger.info(f"Stream rate: {round(1/time_taken)}")
                 
             except Exception as e:

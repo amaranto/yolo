@@ -21,12 +21,12 @@ services:
       SQL_PWD: 1f1tyx@=kug^F%St
       SQL_INSTANCE: raizen-sm-sql
       SPOT: 1506
-      CHANNEL: 21
+      CHANNEL: 1
       GCP_PROJECT: raizen-genai-01
       GCP_REGION: us-central1
       GOOGLE_CLOUD_PROJECT: raizen-genai-01
       PUBSUB_TOPIC: vision_app
-      TRACK_IOU: 0.4
+      TRACK_IOU: 0.5
       TRACK_CONF: 0.1      
     volumes:
       - ./output:/app/output/
