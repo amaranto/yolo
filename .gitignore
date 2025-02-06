@@ -1,7 +1,7 @@
 # Byte-compiled / optimized / DLL files
 *output/
-#*yolo/yolo*.pt
-#*yolo/*.pt
+*yolo/yolo*.pt
+*yolo/*.pt
 *yolo/experto.pt*
 __pycache__/
 *.py[cod]

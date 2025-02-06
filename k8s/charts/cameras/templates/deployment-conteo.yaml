@@ -182,7 +182,7 @@ spec:
             done
           env:  
             - name: MAX_TIME_MINUTES
-              value: "90"
+              value: "{{ $v.delete_video_threshold_in_minutes | default 60 }}"
           volumeMounts:
             - name: vol-conteo-{{$k}}-ch{{$c}}-data
               mountPath: /app/output

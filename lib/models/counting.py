@@ -274,7 +274,7 @@ class BaseModel():
                 id = int(id)
                 clsId = int(cls)
                 clsName = self.model.names[clsId]
-                conf = np.round(conf * 100, 2)
+                conf = int(conf * 100 )
 
                 annot.append(
                     {
@@ -306,29 +306,43 @@ class ChargeTracking(BaseModel):
     def __has_to_rotate_video__( self ):
         
         current_time = datetime.now() 
-        truck_is_present = "truck" in self.status["classes"]
+        trigger_class = "truck"
+        truck_is_present = trigger_class in self.status["classes"]
         if truck_is_present:
-            last_truck_frame_delta = current_time - self.status["classes"]["truck"]["last_frame_time"]
+            last_truck_frame_delta = current_time - self.status["classes"][trigger_class]["last_frame_time"]
             
             if last_truck_frame_delta.seconds < 60 and not self.__video_output__:
-                logger.info("Truck is present. Creating new video output")
-                self.__enable_video_output__ = True
-                return True
+                if not "park_at" in self.status["classes"][trigger_class] or not self.status["classes"][trigger_class]["park_at"]:
+                    logger.info("Truck is present. Saving parking start time.")
+                    self.status["classes"][trigger_class]["park_at"] = current_time
+                    self.__enable_video_output__ = False
+                    return False
+                elif ( current_time - self.status["classes"][trigger_class]["park_at"] ).seconds > 120:
+                    logger.info("Truck parked for more than 2 minutes. Enabling video output")
+                    self.__enable_video_output__ = True
+                    return True
+                else:
+                    parking_time = ( current_time - self.status["classes"][trigger_class]["park_at"] ).seconds
+                    logger.info(f"{trigger_class} is present but not parked for more than 2 minutes. Current parking time: {parking_time}")
+                    self.__enable_video_output__ = False
+                    return False
+                
             elif last_truck_frame_delta.seconds < 60 and self.__video_output__:
                 self.__enable_video_output__ = True
                 logger.info(f"Delta {last_truck_frame_delta.seconds} .Writting output to {self.__current_video_output__}")
                 return False
             elif last_truck_frame_delta.seconds > 60:
                 # Delete track from status if not truck is present after 60 seconds
-                logger.info("Not Truck detected after 60 seconds. Disabling video output")
+                logger.info(f"Not {trigger_class} detected after 60 seconds. Disabling video output")
                 self.__enable_video_output__ = False      
                 # removing truck from status          
-                self.status["classes"].pop('truck', None)
+                self.status["classes"].pop(trigger_class, None)
                 return True
         elif not truck_is_present and not self.__video_output__:
-            logger.info("Preparing new video output and waiting for truck to arrive")
+            logger.info(f"Preparing new video output and waiting for {trigger_class} to arrive")
             self.__enable_video_output__ = False
             return True
         else:
-            logger.info("Truck is not present in current status.")
+            logger.info(f"{trigger_class} is not present in current status.")
+            self.__enable_video_output__ = False
             return False

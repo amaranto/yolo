@@ -163,14 +163,15 @@ spec:
             do
             echo ----------------------------------------
             echo uploading and deleting files:
-            find /app/output -name *.webm -type f -mmin +90  -exec gsutil cp {} gs://{{ $v.gcsbucket }}/app/{} \;
+            find /app/output -name *.webm -type f -mmin +${MAX_TIME_MINUTES} -size -15M -delete
+            find /app/output -name *.webm -type f -mmin +${MAX_TIME_MINUTES} -exec gsutil cp {} gs://{{ $v.gcsbucket }}/app/{} \;
             find /app/output -name *.webm -type f -mmin +${MAX_TIME_MINUTES} -delete
             sleep 60
             echo ----------------------------------------
             done
           env:  
             - name: MAX_TIME_MINUTES
-              value: "90"
+              value: "{{ $v.delete_video_threshold_in_minutes | default 90 }}"
           volumeMounts:
             - name: vol-carga-{{$k}}-ch{{$c}}-data
               mountPath: /app/output
