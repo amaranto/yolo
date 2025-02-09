@@ -1,9 +1,8 @@
 import cv2
-import numpy as np
 import asyncio 
 import numpy as np
 import time
-import torch
+from PIL import Image as im 
 from datetime import datetime
 from typing import Callable
 from ultralytics import YOLO
@@ -32,6 +31,8 @@ class BaseModel():
         self,
         model: str,
         model_name: str,
+        classifier = None, 
+        sub_model_class: list["str"] = ["person"],     
         model_type: str = "carga",        
         fps: float = 10.0,
         conf:float=0.6,
@@ -42,34 +43,21 @@ class BaseModel():
         post_processing_foo:Callable|None = None,
         print_bbox:bool=True,
         output_folder:str="output",
-        classes: list[int] = [
-            0, 
-            1, 
-            2, 
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13
-        ],
+        classes: dict|None = None,
         enable_video_output:bool=True
     ):
+        self.classifier = classifier
         self.model:any = YOLO(model)
         self.model_name = model_name
         self.model_type = model_type        
+        self.sub_model_class = sub_model_class
         self.fps:float = fps
         self.roi:tuple[int,int,int,int] = roi
         self.process_rate: float = 0.0
         self.print_bbox:bool = print_bbox
         self.status_filter_foo:Callable = status_filter_foo
         self.post_processing_foo:Callable = post_processing_foo
-        self.classes:list[int] = classes
+        self.classes:dict = classes if classes else { v:k for k,v in enumerate(self.model.names)}
         self.start_frame: datetime = datetime.now()
         self.last_frame: datetime = datetime.now()
         self.output_folder = output_folder
@@ -196,7 +184,7 @@ class BaseModel():
         output_file = f"{self.output_folder}/{self.model_type}-{self.model_name}-{timestmp}.webm"
         self.__current_video_output__ = output_file        
         self.__video_output__ = cv2.VideoWriter(output_file, self.fourcc, self.fps, (ysize, xsize) )      
-        logger.debug(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
+        logger.info(f"Ready to write video to {output_file}. Frame: {xsize} {ysize}")
         return self.__video_output__
     
     def __has_to_rotate_video__( self ):
@@ -275,7 +263,16 @@ class BaseModel():
                 clsId = int(cls)
                 clsName = self.model.names[clsId]
                 conf = int(conf * 100 )
-
+                
+                if self.classifier and clsName in self.sub_model_class:
+                    original_w, original_h = img.shape[1], img.shape[0]
+                    x_scale, y_scale, w_scale, h_scale = int(x*original_w), int(y*original_h), (w*original_w), (h*original_h)
+                    x1,x2,y1,y2 = int(x_scale-w_scale/2), int(x_scale+w_scale/2), int(y_scale-h_scale/2), int(y_scale+h_scale/2)
+                    
+                    img_crop = im.fromarray(img[y1:y2, x1:x2])
+                    nclsId, clsName = self.classifier.predict(img_crop)
+                    clsId=clsId if clsName in self.classes else nclsId + len(self.classes) + 1
+                    
                 annot.append(
                     {
                         "x":x,
@@ -308,41 +305,43 @@ class ChargeTracking(BaseModel):
         current_time = datetime.now() 
         trigger_class = "truck"
         truck_is_present = trigger_class in self.status["classes"]
+        
         if truck_is_present:
             last_truck_frame_delta = current_time - self.status["classes"][trigger_class]["last_frame_time"]
             
-            if last_truck_frame_delta.seconds < 60 and not self.__video_output__:
+            if last_truck_frame_delta.seconds < 60 and not self.__enable_video_output__:
                 if not "park_at" in self.status["classes"][trigger_class] or not self.status["classes"][trigger_class]["park_at"]:
                     logger.info("Truck is present. Saving parking start time.")
                     self.status["classes"][trigger_class]["park_at"] = current_time
-                    self.__enable_video_output__ = False
                     return False
-                elif ( current_time - self.status["classes"][trigger_class]["park_at"] ).seconds > 120:
+                elif ( current_time - self.status["classes"][trigger_class]["park_at"] ).seconds > 360:
                     logger.info("Truck parked for more than 2 minutes. Enabling video output")
                     self.__enable_video_output__ = True
                     return True
                 else:
                     parking_time = ( current_time - self.status["classes"][trigger_class]["park_at"] ).seconds
                     logger.info(f"{trigger_class} is present but not parked for more than 2 minutes. Current parking time: {parking_time}")
-                    self.__enable_video_output__ = False
                     return False
-                
-            elif last_truck_frame_delta.seconds < 60 and self.__video_output__:
-                self.__enable_video_output__ = True
+            elif last_truck_frame_delta.seconds < 60 and self.__enable_video_output__:
                 logger.info(f"Delta {last_truck_frame_delta.seconds} .Writting output to {self.__current_video_output__}")
                 return False
-            elif last_truck_frame_delta.seconds > 60:
+            elif last_truck_frame_delta.seconds > 60 and self.__enable_video_output__:
                 # Delete track from status if not truck is present after 60 seconds
                 logger.info(f"Not {trigger_class} detected after 60 seconds. Disabling video output")
                 self.__enable_video_output__ = False      
                 # removing truck from status          
                 self.status["classes"].pop(trigger_class, None)
                 return True
-        elif not truck_is_present and not self.__video_output__:
-            logger.info(f"Preparing new video output and waiting for {trigger_class} to arrive")
-            self.__enable_video_output__ = False
-            return True
+            elif last_truck_frame_delta.seconds > 60 and not self.__enable_video_output__:
+                # Delete track from status if not truck is present after 60 seconds
+                logger.info(f"{trigger_class} was present but is gone. Ignoring video output")          
+                self.status["classes"].pop(trigger_class, None)
+                return False            
+        # elif not truck_is_present and not self.__video_output__:
+        #     logger.info(f"Preparing new video output and waiting for {trigger_class} to arrive")
+        #     self.__enable_video_output__ = False
+        #     return True
         else:
             logger.info(f"{trigger_class} is not present in current status.")
-            self.__enable_video_output__ = False
+            # self.__enable_video_output__ = False
             return False

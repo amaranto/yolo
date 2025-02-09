@@ -23,8 +23,8 @@ gcpProject: raizen-genai-01
 images:
   containerImage:
     repository: us-central1-docker.pkg.dev/raizen-genai-01/raizen-sm-artifact/raizen-sm-app
-    pullPolicy: IfNotPresent
-    tag: v2.3.1
+    pullPolicy: Always
+    tag: v11.0
 
 # imagePullSecret:
 #   name: dockerhub-credentials
@@ -40,8 +40,8 @@ modeloCarga:
   1506:
     gpu: true
     ingress: true
-    iou: "0.5"
-    conf: "0.2"    
+    iou: "0.7"
+    conf: "0.3"    
     delete_video_threshold_in_minutes: 90
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -52,12 +52,72 @@ modeloCarga:
     channels:
     - 25
 
+  1716:
+    gpu: true
+    ingress: true
+    iou: "0.7"
+    conf: "0.3"    
+    delete_video_threshold_in_minutes: 90
+    accelarator: nvidia-l4
+    pubsub: "vision_app"
+    rtsp: "11.37.69.100/cam/realmonitor"
+    secrets: rtsp-secret
+    subtype: 1
+    gcsbucket: "raizen-training-data"
+    channels:
+    - 21
+
+  1438:
+    gpu: true
+    ingress: true
+    iou: "0.7"
+    conf: "0.3"    
+    delete_video_threshold_in_minutes: 90
+    accelarator: nvidia-l4
+    pubsub: "vision_app"
+    rtsp: "11.37.69.100/cam/realmonitor"
+    secrets: rtsp-secret
+    subtype: 1
+    gcsbucket: "raizen-training-data"
+    channels:
+    - 22
+
+  1439:
+    gpu: true
+    ingress: true
+    iou: "0.7"
+    conf: "0.3"    
+    delete_video_threshold_in_minutes: 90
+    accelarator: nvidia-l4
+    pubsub: "vision_app"
+    rtsp: "11.37.69.100/cam/realmonitor"
+    secrets: rtsp-secret
+    subtype: 1
+    gcsbucket: "raizen-training-data"
+    channels:
+    - 13
+
+  1482:
+    gpu: true
+    ingress: true
+    iou: "0.7"
+    conf: "0.3"    
+    delete_video_threshold_in_minutes: 90
+    accelarator: nvidia-l4
+    pubsub: "vision_app"
+    rtsp: "11.37.69.100/cam/realmonitor"
+    secrets: rtsp-secret
+    subtype: 1
+    gcsbucket: "raizen-training-data"
+    channels:
+    - 16
+
 modeloConteo:
   1506:
     gpu: true
     ingress: true
-    iou: "0.5"
-    conf: "0.2"
+    iou: "0.7"
+    conf: "0.3"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.37.69.100/cam/realmonitor"
@@ -72,66 +132,59 @@ modeloConteo:
   1716:
     gpu: true
     ingress: true
-    iou: "0.5"
-    conf: "0.2"
+    iou: "0.7"
+    conf: "0.3"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.45.69.100/cam/realmonitor"
     secrets: rtsp-secret
     subtype: 1
     channels:
-    - 1
-    - 2 
-    - 3
-    - 4
-    - 5
+    - 14
+    - 22 
+    - 23
+    - 25
 
   1438:
     gpu: true
     ingress: true
-    iou: "0.5"
-    conf: "0.2"
+    iou: "0.7"
+    conf: "0.3"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.32.69.100/cam/realmonitor"
     secrets: rtsp-secret
     subtype: 1
     channels:
-    - 1
-    - 2 
-    - 3
-    - 4
-    - 5 
+    - 14
+    - 16
+    - 17
+
   1439:
     gpu: true
     ingress: true
-    iou: "0.5"
-    conf: "0.2"
+    iou: "0.7"
+    conf: "0.3"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.31.69.100/cam/realmonitor"
     secrets: rtsp-secret
     subtype: 1
     channels:
-    - 1
-    - 2 
-    - 3
-    - 4
-    - 5 
+    - 11
+    - 12 
+    - 19
 
   1482:
     gpu: true
     ingress: true
-    iou: "0.5"
-    conf: "0.2"
+    iou: "0.7"
+    conf: "0.3"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.36.69.100/cam/realmonitor"
     secrets: rtsp-secret
     subtype: 1
     channels:
-    - 1
-    - 2 
-    - 3
-    - 4 
-    - 5
+    - 17
+    - 18

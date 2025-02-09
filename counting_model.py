@@ -2,6 +2,7 @@ import asyncio, torch
 from sqlalchemy.sql import text
 from lib.tools.streamer import stream
 from lib.tools.yolo import from_p1p2_to_yolo
+from lib.models.classifier import Classifier
 from lib.models.counting import VisionTracking
 from lib.models.pubsub import PostProcessing
 from lib.gcp.cloudsql import pool
@@ -26,29 +27,14 @@ pubsub = PostProcessing(
 )
 
 countingVisionModelTracker = VisionTracking(
-    model="./yolo/last.pt",
+    classifier=Classifier(model_path="./models/raizen_classifier.pth"),    
+    model="./models/best.pt",
     model_name=f"{SPOT}_{CHANNEL}",
     model_type="conteo",
     post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
     iou=TRACK_IOU,
     conf=TRACK_CONF,
-    fps=5.0,
-    classes= [
-        0, # person
-        1, # bycycle
-        2, # car
-        3, # motorcycle
-        4, # bus
-        5, # truck
-        6, # Experto
-        7, # Matafuego
-        8, # Manguera
-        9, # Balde
-        10, # Cono
-        11, # Valla
-        12, # BocaCarga
-        13, # Operario
-    ]              
+    fps=5.0          
 )
 
 async def get_roi():

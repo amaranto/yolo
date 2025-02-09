@@ -2,6 +2,7 @@ import asyncio, torch
 from sqlalchemy.sql import text
 from lib.tools.streamer import stream
 from lib.tools.yolo import from_p1p2_to_yolo
+from lib.models.classifier import Classifier
 from lib.models.counting import ChargeTracking
 from lib.models.pubsub import PostProcessing
 from lib.gcp.cloudsql import pool
@@ -25,31 +26,15 @@ pubsub = PostProcessing(
 )
 
 chargeVisionModelTracker = ChargeTracking(
-    model="./yolo/yolo11x.pt",
+    classifier=Classifier(model_path="./models/raizen_classifier.pth"),
+    model="./models/best.pt",
     model_type="carga",
     model_name=f"{SPOT}_{CHANNEL}",
     post_processing_foo=pubsub.post_processing if PUBSUB_TOPIC else None,
     iou=TRACK_IOU,
     conf=TRACK_CONF,
     fps=5.0,
-    enable_video_output=True,
-    classes= [
-        0, # person
-        1, # bycycle
-        2, # car
-        3, # motorcycle
-        5, # bus
-        7, # truck
-        81, # Experto
-        82, # Matafuego
-        83, # Manguera
-        84, # Balde
-        85, # Cono
-        86, # Valla
-        87, # BocaCarga
-        88, # Operario
-        89  # CamionShell
-    ]  
+    enable_video_output=False
 )
 
 async def get_roi():

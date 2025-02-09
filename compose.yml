@@ -10,61 +10,24 @@ services:
       - ./output:/app/output/
     restart: always
 
-  # counter:
-  #   image: model-base:latest
-  #   command: python3 counting_model.py
-  #   environment:
-  #     RTSP_USER: proyecto
-  #     RTSP_PWD: proyecto2024
-  #     RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=25&subtype=1" 
-  #     SQL_USER: app-user
-  #     SQL_PWD: 1f1tyx@=kug^F%St
-  #     SQL_INSTANCE: raizen-sm-sql
-  #     SPOT: 1506
-  #     CHANNEL: 1
-  #     GCP_PROJECT: raizen-genai-01
-  #     GCP_REGION: us-central1
-  #     GOOGLE_CLOUD_PROJECT: raizen-genai-01
-  #     PUBSUB_TOPIC: vision_app
-  #     TRACK_IOU: 0.5
-  #     TRACK_CONF: 0.1      
-  #   volumes:
-  #     - ./output:/app/output/
-  #     - ~/.config/gcloud:/root/.config/gcloud
-  #   deploy:          
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             count: 1
-  #             capabilities: [gpu]
-  #   # healthcheck:
-  #   #   test: ["CMD-SHELL", "lsof -iTCP:2706 -sTCP:LISTEN -P"]
-  #   #   interval: 10s
-  #   #   retries: 3
-  #   #   start_period: 1s
-  #   #   timeout: 1s
-  #   restart: always
-
-  charge:
+  counter:
     image: model-base:latest
-    command: python3 charge_model.py
+    command: python3 counting_model.py
     environment:
       RTSP_USER: proyecto
       RTSP_PWD: proyecto2024
-      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=25&subtype=1" 
-      POD: local
+      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=6&subtype=1" 
       SQL_USER: app-user
       SQL_PWD: 1f1tyx@=kug^F%St
       SQL_INSTANCE: raizen-sm-sql
       SPOT: 1506
-      CHANNEL: 25
+      CHANNEL: 1
       GCP_PROJECT: raizen-genai-01
       GCP_REGION: us-central1
       GOOGLE_CLOUD_PROJECT: raizen-genai-01
-      PUBSUB_TOPIC: vision_app    
-      TRACK_IOU: 0.9
-      TRACK_CONF: 0.05
+      PUBSUB_TOPIC: vision_app
+      TRACK_IOU: 0.4
+      TRACK_CONF: 0.5      
     volumes:
       - ./output:/app/output/
       - ~/.config/gcloud:/root/.config/gcloud
@@ -75,14 +38,51 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-
     # healthcheck:
-    #   test: ["CMD-SHELL", "lsof -iTCP:2006 -sTCP:LISTEN -P"]
+    #   test: ["CMD-SHELL", "lsof -iTCP:2706 -sTCP:LISTEN -P"]
     #   interval: 10s
     #   retries: 3
     #   start_period: 1s
     #   timeout: 1s
     restart: always
+
+  # charge:
+  #   image: model-base:latest
+  #   command: python3 charge_model.py
+  #   environment:
+  #     RTSP_USER: proyecto
+  #     RTSP_PWD: proyecto2024
+  #     RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=25&subtype=1" 
+  #     POD: local
+  #     SQL_USER: app-user
+  #     SQL_PWD: 1f1tyx@=kug^F%St
+  #     SQL_INSTANCE: raizen-sm-sql
+  #     SPOT: 1506
+  #     CHANNEL: 222
+  #     GCP_PROJECT: raizen-genai-01
+  #     GCP_REGION: us-central1
+  #     GOOGLE_CLOUD_PROJECT: raizen-genai-01
+  #     PUBSUB_TOPIC: vision_app    
+  #     TRACK_IOU: 0.5
+  #     TRACK_CONF: 0.4
+  #   volumes:
+  #     - ./output:/app/output/
+  #     - ~/.config/gcloud:/root/.config/gcloud
+  #   deploy:          
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "lsof -iTCP:2006 -sTCP:LISTEN -P"]
+  #     interval: 10s
+  #     retries: 3
+  #     start_period: 1s
+  #     timeout: 1s
+  #   restart: always
     
 volumes:
   output-volume:

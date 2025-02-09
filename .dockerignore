@@ -2,6 +2,7 @@
 # Byte-compiled / optimized / DLL files
 output/*
 __pycache__/
+k8s/*
 *.py[cod]
 *$py.class
 
