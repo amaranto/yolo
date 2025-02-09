@@ -24,7 +24,7 @@ images:
   containerImage:
     repository: us-central1-docker.pkg.dev/raizen-genai-01/raizen-sm-artifact/raizen-sm-app
     pullPolicy: Always
-    tag: v11.0
+    tag: v3.0.0
 
 # imagePullSecret:
 #   name: dockerhub-credentials
@@ -40,8 +40,8 @@ modeloCarga:
   1506:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"    
+    iou: "0.4"
+    conf: "0.4"    
     delete_video_threshold_in_minutes: 90
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -55,8 +55,8 @@ modeloCarga:
   1716:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"    
+    iou: "0.4"
+    conf: "0.4"    
     delete_video_threshold_in_minutes: 90
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -70,8 +70,8 @@ modeloCarga:
   1438:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"    
+    iou: "0.4"
+    conf: "0.4"    
     delete_video_threshold_in_minutes: 90
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -85,8 +85,8 @@ modeloCarga:
   1439:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"    
+    iou: "0.4"
+    conf: "0.4"    
     delete_video_threshold_in_minutes: 90
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -100,8 +100,8 @@ modeloCarga:
   1482:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"    
+    iou: "0.4"
+    conf: "0.4"    
     delete_video_threshold_in_minutes: 90
     accelarator: nvidia-l4
     pubsub: "vision_app"
@@ -116,8 +116,8 @@ modeloConteo:
   1506:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"
+    iou: "0.4"
+    conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.37.69.100/cam/realmonitor"
@@ -132,8 +132,8 @@ modeloConteo:
   1716:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"
+    iou: "0.4"
+    conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.45.69.100/cam/realmonitor"
@@ -148,8 +148,8 @@ modeloConteo:
   1438:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"
+    iou: "0.4"
+    conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.32.69.100/cam/realmonitor"
@@ -163,8 +163,8 @@ modeloConteo:
   1439:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"
+    iou: "0.4"
+    conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.31.69.100/cam/realmonitor"
@@ -178,8 +178,8 @@ modeloConteo:
   1482:
     gpu: true
     ingress: true
-    iou: "0.7"
-    conf: "0.3"
+    iou: "0.4"
+    conf: "0.4"
     accelarator: nvidia-l4
     pubsub: "vision_app"
     rtsp: "11.36.69.100/cam/realmonitor"
