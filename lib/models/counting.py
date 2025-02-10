@@ -232,19 +232,21 @@ class BaseModel():
     def stop(self):
         self.is_alive = False
         return True
-    
-    def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True, device="cpu"):
+
+    def predict(self, img, tracker:str="bytetrack.yaml", conf:float|None=None, iou=None, persist:float|None=True, device="cpu", classes:list[int]=[0,1,2,3,5,7]):
         
         conf = conf if conf else self.conf
         iou = iou if iou else self.iou
         rx, ry, rw, rh = self.roi
+        original_w, original_h = img.shape[1], img.shape[0]
         
         while self.__processing_flag__:
             time.sleep(0.1)
+            logger.info("Waiting for previous frame to be processed")
         self.__processing_flag__ = True
         
         # results = self.model.track(img, tracker=tracker, classes=self.classes, conf=conf, iou=iou, persist=persist, device=device)
-        results = self.model.track(img.copy(), tracker=tracker,  conf=conf, iou=iou, persist=persist, device=device)
+        results = self.model.track(img.copy(), tracker=tracker, classes=classes, imgsz=(original_h, original_w), conf=conf, iou=iou, persist=persist, device=device)
         annot = []
         
         for result in results:
@@ -257,6 +259,7 @@ class BaseModel():
                         
             for id, cls, (x,y,w,h), conf in boxes_result:
                 if not (rx-(rw/2) < x < rx+(rw/2) and ry-(rh/2) < y < ry+(rh/2)):
+                    logger.info("Skipping object outside ROI")
                     continue
                     
                 id = int(id)
@@ -264,12 +267,15 @@ class BaseModel():
                 clsName = self.model.names[clsId]
                 conf = int(conf * 100 )
                 
-                if self.classifier and clsName in self.sub_model_class:
-                    original_w, original_h = img.shape[1], img.shape[0]
+                if id in self.status["ids"] and (self.status["ids"][id] == "Experto" or self.status["ids"][id] == "Operario"):
+                    clsName = self.status["ids"][id] # skip mobilenet inference if expert was already classified
+                elif self.classifier and clsName in self.sub_model_class:
                     x_scale, y_scale, w_scale, h_scale = int(x*original_w), int(y*original_h), (w*original_w), (h*original_h)
                     x1,x2,y1,y2 = int(x_scale-w_scale/2), int(x_scale+w_scale/2), int(y_scale-h_scale/2), int(y_scale+h_scale/2)
                     
-                    img_crop = im.fromarray(img[y1:y2, x1:x2])
+                    img_crop = cv2.cvtColor(img[y1:y2, x1:x2], cv2.COLOR_RGB2BGR)
+                    img_crop = im.fromarray(img_crop)
+                    # img_crop.save("output/crop.jpg")
                     nclsId, clsName = self.classifier.predict(img_crop)
                     clsId=clsId if clsName in self.classes else nclsId + len(self.classes) + 1
                     

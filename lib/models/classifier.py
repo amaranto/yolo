@@ -4,7 +4,7 @@ from PIL import Image
 import glob
 
 class Classifier:
-    def __init__(self, model_path, classes=["person", "operation", "expert"]):
+    def __init__(self, model_path, classes=["Experto", "Operario", "person"]):
         self.classes = classes  
         self.model = models.mobilenet_v3_small(pretrained=False)
         self.model.classifier[3] = torch.nn.Linear(in_features=1024, out_features=len(classes))

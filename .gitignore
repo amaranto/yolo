@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 *output/
+*models/*
 *yolo/yolo*.pt
 *yolo/*.pt
 *yolo/experto.pt*

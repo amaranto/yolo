@@ -16,7 +16,9 @@ services:
     environment:
       RTSP_USER: proyecto
       RTSP_PWD: proyecto2024
-      RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=6&subtype=1" 
+      RTSP_ENDPOINT: "11.36.69.100/cam/realmonitor?channel=16&subtype=1"
+      #RTSP_ENDPOINT: "11.37.69.100/cam/realmonitor?channel=9&subtype=1" 
+      #RTSP_ENDPOINT: "11.31.69.100/cam/realmonitor?channel=3&subtype=1"
       SQL_USER: app-user
       SQL_PWD: 1f1tyx@=kug^F%St
       SQL_INSTANCE: raizen-sm-sql

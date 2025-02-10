@@ -164,7 +164,7 @@ spec:
             echo ----------------------------------------
             echo uploading and deleting files:
             find /app/output -name *.webm -type f -mmin +${MAX_TIME_MINUTES} -size -15M -delete
-            find /app/output -name *.webm -type f -mmin +${MAX_TIME_MINUTES} -exec gsutil cp {} gs://{{ $v.gcsbucket }}/app/{} \;
+            find /app/output -name *.webm -type f -mmin +${MAX_TIME_MINUTES} -exec gsutil cp {} gs://{{ $v.gcsbucket }}{} \;
             find /app/output -name *.webm -type f -mmin +${MAX_TIME_MINUTES} -delete
             sleep 60
             echo ----------------------------------------
